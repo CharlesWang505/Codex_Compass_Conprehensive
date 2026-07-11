@@ -2,6 +2,8 @@
 
 基于 Tauri 2、Rust、React 19、TypeScript 与 Recharts 的桌面级 API 中转监控、Codex 管理和模型热切换软件，面向 New API、One API 与 OpenAI 兼容中转站。
 
+本项目参考并基于 [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus) 与 [codex-api-hot-switch](https://github.com/BandengHu/codex-api-hot-switch) 的部分功能进行整合和完善，旨在把中转站监控、Codex 管理、供应商配置、模型热切换及常用增强集中到一个桌面工具中，让用户只需一个配套软件便能更轻松地配置和使用 Codex。
+
 完整操作说明见 [Codex_Ultura 使用手册](./docs/USER_MANUAL.md)。
 
 ## 功能
