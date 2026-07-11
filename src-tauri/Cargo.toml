@@ -1,0 +1,82 @@
+[workspace]
+resolver = "2"
+members = [
+  ".",
+  "codex-plus/crates/codex-plus-core",
+  "codex-plus/crates/codex-plus-data",
+  "codex-plus/apps/codex-plus-launcher",
+]
+default-members = ["."]
+
+[workspace.package]
+version = "1.2.34"
+edition = "2024"
+license = "AGPL-3.0-only"
+repository = "https://github.com/BigPizzaV3/CodexPlusPlus"
+
+[workspace.dependencies]
+aes-gcm = "0.10"
+anyhow = "1"
+base64 = "0.22"
+directories = "6"
+fs2 = "0.4"
+futures-util = "0.3"
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls", "system-proxy"], default-features = false }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt-multi-thread", "sync", "time"] }
+tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+toml = "0.8"
+toml_edit = "0.22"
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[package]
+name = "codex-ultura"
+version = "1.2.1"
+description = "Codex_Ultura: API relay monitor, Codex manager, and hot-switch desktop gateway."
+authors = ["Codex_Ultura"]
+license = "AGPL-3.0-only"
+edition = "2024"
+rust-version = "1.85"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "codex_ultura_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+base64 = "0.22"
+codex-plus-core = { path = "codex-plus/crates/codex-plus-core" }
+codex-plus-data = { path = "codex-plus/crates/codex-plus-data" }
+codex-plus-launcher = { path = "codex-plus/apps/codex-plus-launcher" }
+directories = "6"
+reqwest = { version = "0.12", default-features = false, features = ["brotli", "deflate", "gzip", "json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+tauri = { version = "2", features = ["macos-private-api", "tray-icon"] }
+tauri-plugin-dialog = "2"
+tokio = { workspace = true }
+urlencoding = "2"
+
+[dev-dependencies]
+rusqlite = { workspace = true }
+tempfile = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+  "Win32_System_Com",
+  "Win32_UI_Shell",
+] }

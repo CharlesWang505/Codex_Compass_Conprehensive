@@ -1,0 +1,59 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Codex_Ultura",
+  "version": "../package.json",
+  "identifier": "chat.ai-api.relay-meter",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Codex_Ultura",
+        "width": 1440,
+        "height": 940,
+        "minWidth": 1180,
+        "minHeight": 760,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "visible": false,
+        "backgroundColor": [8, 12, 18, 0],
+        "windowEffects": {
+          "effects": ["acrylic", "sidebar"],
+          "state": "active",
+          "radius": 8,
+          "color": [8, 12, 18, 150]
+        }
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "shortDescription": "API 中转监控、Codex 管理与模型热切换桌面应用",
+    "longDescription": "统一管理中转站账户、API 供应商、Codex 增强、模型映射、8787 热切换与代理测速。",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}

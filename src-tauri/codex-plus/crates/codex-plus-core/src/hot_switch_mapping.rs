@@ -1,0 +1,475 @@
+use std::collections::{HashMap, HashSet};
+
+use futures_util::future::join_all;
+use serde::Serialize;
+use serde_json::{Value, json};
+
+use crate::model_suffix::ModelCatalogEntry;
+use crate::settings::{BackendSettings, HotSwitchModelMapping, RelayMode, RelayProfile};
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HotSwitchProviderScan {
+    pub relay_id: String,
+    pub relay_name: String,
+    pub endpoint: String,
+    pub models: Vec<String>,
+    pub error: String,
+}
+
+impl HotSwitchProviderScan {
+    pub fn succeeded(&self) -> bool {
+        self.error.is_empty()
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HotSwitchMappingScan {
+    pub mappings: Vec<HotSwitchModelMapping>,
+    pub providers: Vec<HotSwitchProviderScan>,
+    pub conflict_count: usize,
+    pub failed_provider_count: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct HotSwitchResolvedRoute {
+    pub relay: RelayProfile,
+    pub fallback_relays: Vec<RelayProfile>,
+    pub requested_model: String,
+    pub upstream_model: String,
+    pub reasoning: String,
+    pub mapped: bool,
+}
+
+pub async fn scan_hot_switch_model_mappings(settings: &BackendSettings) -> HotSwitchMappingScan {
+    let profiles = eligible_profiles(settings);
+    let scans = join_all(profiles.into_iter().map(|profile| async move {
+        match crate::model_catalog::fetch_relay_profile_model_ids(&profile).await {
+            Ok((models, endpoint)) => HotSwitchProviderScan {
+                relay_id: profile.id,
+                relay_name: profile.name,
+                endpoint,
+                models,
+                error: String::new(),
+            },
+            Err(error) => HotSwitchProviderScan {
+                relay_id: profile.id,
+                relay_name: profile.name,
+                endpoint: String::new(),
+                models: Vec::new(),
+                error: error.to_string(),
+            },
+        }
+    }))
+    .await;
+    build_mapping_scan(settings, scans)
+}
+
+pub fn build_mapping_scan(
+    settings: &BackendSettings,
+    providers: Vec<HotSwitchProviderScan>,
+) -> HotSwitchMappingScan {
+    let relay_order = settings
+        .relay_profiles
+        .iter()
+        .enumerate()
+        .map(|(index, profile)| (profile.id.as_str(), index))
+        .collect::<HashMap<_, _>>();
+    let failed_relay_ids = providers
+        .iter()
+        .filter(|scan| !scan.succeeded())
+        .map(|scan| scan.relay_id.as_str())
+        .collect::<HashSet<_>>();
+    let valid_relay_ids = eligible_profiles(settings)
+        .into_iter()
+        .map(|profile| profile.id)
+        .collect::<HashSet<_>>();
+    let previous = settings
+        .hot_switch_model_mappings
+        .iter()
+        .map(|mapping| (mapping.model.as_str(), mapping))
+        .collect::<HashMap<_, _>>();
+    let mut candidates = HashMap::<String, Vec<String>>::new();
+
+    for scan in providers.iter().filter(|scan| scan.succeeded()) {
+        for model in &scan.models {
+            let model = model.trim();
+            if model.is_empty() {
+                continue;
+            }
+            let relay_ids = candidates.entry(model.to_string()).or_default();
+            if !relay_ids.contains(&scan.relay_id) {
+                relay_ids.push(scan.relay_id.clone());
+            }
+        }
+    }
+
+    // 某个供应商临时扫描失败时保留其旧候选，避免一次网络抖动清空已有映射。
+    for mapping in &settings.hot_switch_model_mappings {
+        for relay_id in &mapping.candidate_relay_ids {
+            if failed_relay_ids.contains(relay_id.as_str()) && valid_relay_ids.contains(relay_id) {
+                let relay_ids = candidates.entry(mapping.model.clone()).or_default();
+                if !relay_ids.contains(relay_id) {
+                    relay_ids.push(relay_id.clone());
+                }
+            }
+        }
+    }
+
+    let mut models = candidates.keys().cloned().collect::<Vec<_>>();
+    models.sort_by_key(|model| model.to_ascii_lowercase());
+    let mappings = models
+        .into_iter()
+        .filter_map(|model| {
+            let mut relay_ids = candidates.remove(&model).unwrap_or_default();
+            relay_ids.sort_by_key(|relay_id| {
+                relay_order
+                    .get(relay_id.as_str())
+                    .copied()
+                    .unwrap_or(usize::MAX)
+            });
+            relay_ids.dedup();
+            let old = previous.get(model.as_str()).copied();
+            let relay_id = old
+                .filter(|mapping| relay_ids.contains(&mapping.relay_id))
+                .map(|mapping| mapping.relay_id.clone())
+                .or_else(|| relay_ids.first().cloned())?;
+            let upstream_model = old
+                .filter(|mapping| {
+                    mapping.relay_id == relay_id && !mapping.upstream_model.trim().is_empty()
+                })
+                .map(|mapping| mapping.upstream_model.clone())
+                .unwrap_or_else(|| model.clone());
+            Some(HotSwitchModelMapping {
+                model,
+                upstream_model,
+                relay_id,
+                candidate_relay_ids: relay_ids,
+                fallback_relay_ids: old
+                    .map(|mapping| mapping.fallback_relay_ids.clone())
+                    .unwrap_or_default(),
+                reasoning_override: old
+                    .map(|mapping| mapping.reasoning_override.clone())
+                    .unwrap_or_default(),
+            })
+        })
+        .collect::<Vec<_>>();
+    let conflict_count = mappings
+        .iter()
+        .filter(|mapping| mapping.candidate_relay_ids.len() > 1)
+        .count();
+    let failed_provider_count = providers.iter().filter(|scan| !scan.succeeded()).count();
+    HotSwitchMappingScan {
+        mappings,
+        providers,
+        conflict_count,
+        failed_provider_count,
+    }
+}
+
+pub fn resolve_hot_switch_route(
+    settings: &BackendSettings,
+    requested_model: &str,
+) -> anyhow::Result<Option<HotSwitchResolvedRoute>> {
+    if !settings.hot_switch_enabled {
+        return Ok(None);
+    }
+    let requested_model = requested_model.trim().to_string();
+    if settings.hot_switch_model_routing_enabled && !requested_model.is_empty() {
+        if let Some(mapping) = settings
+            .hot_switch_model_mappings
+            .iter()
+            .find(|mapping| mapping.model == requested_model)
+        {
+            let mut relay = relay_profile_by_id(settings, &mapping.relay_id).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "模型「{}」映射的供应商「{}」不存在",
+                    mapping.model,
+                    mapping.relay_id
+                )
+            })?;
+            relay.model = mapping.upstream_model.clone();
+            let fallback_relays = mapping
+                .fallback_relay_ids
+                .iter()
+                .filter(|relay_id| *relay_id != &mapping.relay_id)
+                .filter_map(|relay_id| relay_profile_by_id(settings, relay_id))
+                .map(|mut fallback| {
+                    fallback.model = mapping.upstream_model.clone();
+                    fallback
+                })
+                .collect();
+            return Ok(Some(HotSwitchResolvedRoute {
+                relay,
+                fallback_relays,
+                requested_model,
+                upstream_model: mapping.upstream_model.clone(),
+                reasoning: if mapping.reasoning_override.trim().is_empty()
+                    || mapping.reasoning_override == "inherit"
+                {
+                    settings.default_reasoning.clone()
+                } else {
+                    mapping.reasoning_override.clone()
+                },
+                mapped: true,
+            }));
+        }
+    }
+
+    let mut relay = settings.hot_switch_relay_profile();
+    let upstream_model = if settings.hot_switch_model_routing_enabled && !requested_model.is_empty()
+    {
+        requested_model.clone()
+    } else if !settings.hot_switch_model.trim().is_empty() {
+        settings.hot_switch_model.trim().to_string()
+    } else {
+        requested_model.clone()
+    };
+    relay.model = upstream_model.clone();
+    Ok(Some(HotSwitchResolvedRoute {
+        relay,
+        fallback_relays: Vec::new(),
+        requested_model,
+        upstream_model,
+        reasoning: settings.default_reasoning.clone(),
+        mapped: false,
+    }))
+}
+
+pub fn hot_switch_catalog_entries(settings: &BackendSettings) -> Vec<ModelCatalogEntry> {
+    if !settings.hot_switch_model_routing_enabled {
+        return Vec::new();
+    }
+    settings
+        .hot_switch_model_mappings
+        .iter()
+        .map(|mapping| ModelCatalogEntry {
+            slug: mapping.model.clone(),
+            display_name: mapping.model.clone(),
+            suffix_window: mapping_context_window(settings, mapping),
+        })
+        .collect()
+}
+
+pub fn hot_switch_default_model(settings: &BackendSettings) -> Option<String> {
+    let matching = settings.hot_switch_model_mappings.iter().find(|mapping| {
+        mapping.relay_id == settings.hot_switch_relay_id
+            && mapping.upstream_model == settings.hot_switch_model
+    });
+    matching
+        .or_else(|| settings.hot_switch_model_mappings.first())
+        .map(|mapping| mapping.model.clone())
+}
+
+pub fn hot_switch_models_api_payload(settings: &BackendSettings) -> Option<Value> {
+    if !settings.hot_switch_enabled
+        || !settings.hot_switch_model_routing_enabled
+        || settings.hot_switch_model_mappings.is_empty()
+    {
+        return None;
+    }
+    let data = settings
+        .hot_switch_model_mappings
+        .iter()
+        .map(|mapping| {
+            let owner = settings
+                .relay_profiles
+                .iter()
+                .find(|profile| profile.id == mapping.relay_id)
+                .map(|profile| profile.name.as_str())
+                .unwrap_or(mapping.relay_id.as_str());
+            json!({
+                "id": mapping.model,
+                "object": "model",
+                "owned_by": owner
+            })
+        })
+        .collect::<Vec<_>>();
+    Some(json!({
+        "object": "list",
+        "data": data
+    }))
+}
+
+fn eligible_profiles(settings: &BackendSettings) -> Vec<RelayProfile> {
+    settings
+        .relay_profiles
+        .iter()
+        .filter(|profile| {
+            profile.relay_mode != RelayMode::Aggregate
+                && !profile.base_url.trim().is_empty()
+                && !profile.api_key.trim().is_empty()
+        })
+        .cloned()
+        .collect()
+}
+
+fn relay_profile_by_id(settings: &BackendSettings, relay_id: &str) -> Option<RelayProfile> {
+    settings
+        .relay_profiles
+        .iter()
+        .find(|profile| profile.id == relay_id && profile.relay_mode != RelayMode::Aggregate)
+        .cloned()
+}
+
+fn mapping_context_window(
+    settings: &BackendSettings,
+    mapping: &HotSwitchModelMapping,
+) -> Option<u64> {
+    let profile = settings
+        .relay_profiles
+        .iter()
+        .find(|profile| profile.id == mapping.relay_id)?;
+    let windows =
+        serde_json::from_str::<HashMap<String, String>>(&profile.model_windows).unwrap_or_default();
+    crate::model_suffix::collect_catalog_entries(
+        &profile.model_list,
+        &windows,
+        &mapping.upstream_model,
+    )
+    .into_iter()
+    .find(|entry| entry.slug == mapping.upstream_model)
+    .and_then(|entry| entry.suffix_window)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::{RelayMode, RelayProfile};
+
+    fn profile(id: &str, name: &str) -> RelayProfile {
+        RelayProfile {
+            id: id.to_string(),
+            name: name.to_string(),
+            base_url: format!("https://{id}.example/v1"),
+            upstream_base_url: format!("https://{id}.example/v1"),
+            api_key: format!("sk-{id}"),
+            relay_mode: RelayMode::PureApi,
+            ..RelayProfile::default()
+        }
+    }
+
+    #[test]
+    fn mapping_scan_auto_maps_unique_models_and_marks_conflicts() {
+        let settings = BackendSettings {
+            relay_profiles: vec![profile("a", "A"), profile("b", "B")],
+            ..BackendSettings::default()
+        };
+        let scan = build_mapping_scan(
+            &settings,
+            vec![
+                HotSwitchProviderScan {
+                    relay_id: "a".to_string(),
+                    relay_name: "A".to_string(),
+                    endpoint: "https://a.example/v1/models".to_string(),
+                    models: vec!["model-a".to_string(), "shared".to_string()],
+                    error: String::new(),
+                },
+                HotSwitchProviderScan {
+                    relay_id: "b".to_string(),
+                    relay_name: "B".to_string(),
+                    endpoint: "https://b.example/v1/models".to_string(),
+                    models: vec!["model-b".to_string(), "shared".to_string()],
+                    error: String::new(),
+                },
+            ],
+        );
+
+        assert_eq!(scan.mappings.len(), 3);
+        assert_eq!(scan.conflict_count, 1);
+        let shared = scan
+            .mappings
+            .iter()
+            .find(|mapping| mapping.model == "shared")
+            .unwrap();
+        assert_eq!(shared.relay_id, "a");
+        assert_eq!(shared.candidate_relay_ids, vec!["a", "b"]);
+    }
+
+    #[test]
+    fn mapping_scan_preserves_previous_conflict_choice() {
+        let settings = BackendSettings {
+            relay_profiles: vec![profile("a", "A"), profile("b", "B")],
+            hot_switch_model_mappings: vec![HotSwitchModelMapping {
+                model: "shared".to_string(),
+                upstream_model: "shared".to_string(),
+                relay_id: "b".to_string(),
+                candidate_relay_ids: vec!["a".to_string(), "b".to_string()],
+                ..HotSwitchModelMapping::default()
+            }],
+            ..BackendSettings::default()
+        };
+        let scan = build_mapping_scan(
+            &settings,
+            vec![
+                HotSwitchProviderScan {
+                    relay_id: "a".to_string(),
+                    relay_name: "A".to_string(),
+                    endpoint: String::new(),
+                    models: vec!["shared".to_string()],
+                    error: String::new(),
+                },
+                HotSwitchProviderScan {
+                    relay_id: "b".to_string(),
+                    relay_name: "B".to_string(),
+                    endpoint: String::new(),
+                    models: vec!["shared".to_string()],
+                    error: String::new(),
+                },
+            ],
+        );
+
+        assert_eq!(scan.mappings[0].relay_id, "b");
+    }
+
+    #[test]
+    fn resolver_uses_codex_model_to_choose_provider_and_upstream_model() {
+        let settings = BackendSettings {
+            hot_switch_enabled: true,
+            hot_switch_model_routing_enabled: true,
+            relay_profiles: vec![profile("a", "A"), profile("b", "B")],
+            hot_switch_model_mappings: vec![HotSwitchModelMapping {
+                model: "codex-choice".to_string(),
+                upstream_model: "real-model".to_string(),
+                relay_id: "b".to_string(),
+                candidate_relay_ids: vec!["b".to_string()],
+                fallback_relay_ids: vec!["a".to_string()],
+                reasoning_override: "high".to_string(),
+            }],
+            ..BackendSettings::default()
+        };
+
+        let route = resolve_hot_switch_route(&settings, "codex-choice")
+            .unwrap()
+            .unwrap();
+        assert!(route.mapped);
+        assert_eq!(route.relay.id, "b");
+        assert_eq!(route.fallback_relays[0].id, "a");
+        assert_eq!(route.upstream_model, "real-model");
+        assert_eq!(route.reasoning, "high");
+    }
+
+    #[test]
+    fn models_api_payload_exposes_all_mapped_codex_models() {
+        let settings = BackendSettings {
+            hot_switch_enabled: true,
+            hot_switch_model_routing_enabled: true,
+            relay_profiles: vec![profile("a", "Provider A")],
+            hot_switch_model_mappings: vec![HotSwitchModelMapping {
+                model: "codex-choice".to_string(),
+                upstream_model: "real-model".to_string(),
+                relay_id: "a".to_string(),
+                candidate_relay_ids: vec!["a".to_string()],
+                ..HotSwitchModelMapping::default()
+            }],
+            ..BackendSettings::default()
+        };
+
+        let payload = hot_switch_models_api_payload(&settings).unwrap();
+
+        assert_eq!(payload["object"], "list");
+        assert_eq!(payload["data"][0]["id"], "codex-choice");
+        assert_eq!(payload["data"][0]["owned_by"], "Provider A");
+    }
+}
