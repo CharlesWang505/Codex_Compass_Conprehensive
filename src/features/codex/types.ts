@@ -299,7 +299,10 @@ export type UpdateResult = CommandResult<{
   assetName?: string | null
   assetUrl?: string | null
   updateAvailable?: boolean
+  automaticUpdateConfigured?: boolean
+  updateRepository?: string
   installedPath?: string
+  launched?: boolean
   progress?: number
 }>
 

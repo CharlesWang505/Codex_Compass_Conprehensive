@@ -1,6 +1,7 @@
 use codex_plus_core::update::{
-    Release, download_asset_to, is_newer_version, parse_version_tag, release_from_github_payload,
-    release_from_latest_json_payload, safe_asset_name, select_update_asset,
+    Release, download_asset_to, is_newer_version, parse_version_tag,
+    release_from_github_latest_url, release_from_github_payload, release_from_latest_json_payload,
+    safe_asset_name, select_update_asset, validate_release_source,
 };
 use serde_json::json;
 
@@ -47,6 +48,86 @@ fn github_payload_selects_platform_installer() {
     } else {
         assert_eq!(release.asset_name.as_deref(), None);
     }
+}
+
+#[test]
+fn codex_compass_github_payload_selects_setup_asset() {
+    let release = release_from_github_payload(&json!({
+        "tag_name": "v1.3.1",
+        "html_url": "https://github.com/CharlesWang505/Codex_Ultura/releases/tag/v1.3.1",
+        "body": "fixes",
+        "assets": [
+            {
+                "name": "Codex_Compass_1.3.1_x64-portable.exe",
+                "browser_download_url": "https://github.com/CharlesWang505/Codex_Ultura/releases/download/v1.3.1/Codex_Compass_1.3.1_x64-portable.exe"
+            },
+            {
+                "name": "Codex_Compass_1.3.1_x64-setup.exe",
+                "browser_download_url": "https://github.com/CharlesWang505/Codex_Ultura/releases/download/v1.3.1/Codex_Compass_1.3.1_x64-setup.exe"
+            }
+        ]
+    }))
+    .unwrap();
+
+    if cfg!(windows) {
+        assert_eq!(
+            release.asset_name.as_deref(),
+            Some("Codex_Compass_1.3.1_x64-setup.exe")
+        );
+        validate_release_source(&release).unwrap();
+    } else {
+        assert_eq!(release.asset_name.as_deref(), None);
+    }
+}
+
+#[test]
+fn github_latest_redirect_builds_a_trusted_fallback_release() {
+    let release = release_from_github_latest_url(
+        "https://github.com/CharlesWang505/Codex_Ultura/releases/tag/v1.3.1",
+    )
+    .unwrap();
+
+    assert_eq!(release.version, "v1.3.1");
+    assert!(release.body.contains("Releases/latest"));
+    if cfg!(windows) {
+        assert_eq!(
+            release.asset_name.as_deref(),
+            Some("Codex_Compass_1.3.1_x64-setup.exe")
+        );
+        assert_eq!(
+            release.asset_url.as_deref(),
+            Some(
+                "https://github.com/CharlesWang505/Codex_Ultura/releases/download/v1.3.1/Codex_Compass_1.3.1_x64-setup.exe"
+            )
+        );
+        validate_release_source(&release).unwrap();
+    }
+}
+
+#[test]
+fn github_latest_redirect_rejects_other_repositories() {
+    assert!(
+        release_from_github_latest_url(
+            "https://github.com/SomeoneElse/Codex_Ultura/releases/tag/v9.9.9"
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn update_rejects_assets_outside_the_codex_compass_repository() {
+    let release = Release {
+        version: "v9.9.9".to_string(),
+        url: "https://example.test/release".to_string(),
+        body: "untrusted".to_string(),
+        asset_name: Some("Codex_Compass_9.9.9_x64-setup.exe".to_string()),
+        asset_url: Some(
+            "https://github.com/SomeoneElse/Other/releases/download/v9.9.9/Codex_Compass_9.9.9_x64-setup.exe"
+                .to_string(),
+        ),
+    };
+
+    assert!(validate_release_source(&release).is_err());
 }
 
 #[test]

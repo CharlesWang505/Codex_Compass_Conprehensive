@@ -951,7 +951,7 @@ impl LaunchHooks for DefaultLaunchHooks {
             } else {
                 empty_streak = 0;
             }
-            tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
         }
         Ok(())
     }

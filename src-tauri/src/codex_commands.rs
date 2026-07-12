@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use codex_plus_core::models::{DeleteResult, SessionRef};
 use codex_plus_core::script_market::{self, MarketScript, ScriptMarketManifest};
@@ -593,7 +593,18 @@ fn spawn_embedded_launcher(
         .name("codex-plus-embedded-launcher".to_string())
         .spawn(move || {
             if let Some(previous) = previous {
-                let _ = previous.join();
+                if !join_launcher_thread_with_timeout(
+                    previous,
+                    Duration::from_millis(LAUNCHER_RESTART_HANDOFF_TIMEOUT_MS),
+                ) {
+                    let _ = codex_plus_core::diagnostic_log::append_diagnostic_log(
+                        "manager.embedded_launcher_handoff_timeout",
+                        json!({
+                            "timeout_ms": LAUNCHER_RESTART_HANDOFF_TIMEOUT_MS,
+                            "action": "continue_with_new_launcher"
+                        }),
+                    );
+                }
             }
             let result = codex_plus_launcher::run(options);
             let runtime_error = result.as_ref().err().map(ToString::to_string);
@@ -615,6 +626,29 @@ fn spawn_embedded_launcher(
         .map_err(|error| anyhow::anyhow!("无法创建内置启动线程：{error}"))?;
     slot.handle = Some(handle);
     Ok(true)
+}
+
+const LAUNCHER_RESTART_HANDOFF_TIMEOUT_MS: u64 = 2_000;
+const LAUNCHER_RESTART_HANDOFF_POLL_MS: u64 = 50;
+
+fn join_launcher_thread_with_timeout(
+    handle: std::thread::JoinHandle<()>,
+    timeout: Duration,
+) -> bool {
+    let deadline = Instant::now() + timeout;
+    while !handle.is_finished() && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(LAUNCHER_RESTART_HANDOFF_POLL_MS));
+    }
+    if handle.is_finished() {
+        let _ = handle.join();
+        true
+    } else {
+        // Dropping a JoinHandle detaches the old launcher. This is intentional:
+        // a stale Windows Store process watcher must not permanently block the
+        // replacement launcher from opening Codex again.
+        drop(handle);
+        false
+    }
 }
 
 #[derive(Default)]
@@ -2205,32 +2239,89 @@ fn count_skill_files(root: &Path) -> std::io::Result<usize> {
 
 #[tauri::command]
 pub async fn check_update() -> CommandResult<Value> {
-    CommandResult {
-        status: "warning".to_string(),
-        message: UPDATE_DISABLED_MESSAGE.to_string(),
-        payload: disabled_update_payload(),
+    match codex_plus_core::update::check_for_update(env!("CARGO_PKG_VERSION")).await {
+        Ok(update) => CommandResult {
+            status: "ok".to_string(),
+            message: if update.update_available {
+                "发现 Codex Compass 新版本。".to_string()
+            } else {
+                "当前已是最新版本。".to_string()
+            },
+            payload: json!({
+                "currentVersion": update.current_version,
+                "latestVersion": update.latest_version,
+                "releaseSummary": update.release_summary,
+                "assetName": update.asset_name,
+                "assetUrl": update.asset_url,
+                "updateAvailable": update.update_available,
+                "automaticUpdateConfigured": true,
+                "updateRepository": codex_plus_core::update::DEFAULT_REPOSITORY,
+                "installedPath": Value::Null,
+                "launched": false,
+                "progress": 0
+            }),
+        },
+        Err(error) => failed(
+            &format!("检查 GitHub 更新失败：{error}"),
+            update_payload_unavailable(),
+        ),
     }
 }
 
 #[tauri::command]
 pub async fn perform_update(
-    _release: Option<codex_plus_core::update::Release>,
+    release: Option<codex_plus_core::update::Release>,
 ) -> CommandResult<Value> {
-    failed(UPDATE_DISABLED_MESSAGE, disabled_update_payload())
+    let Some(release) = release else {
+        return failed("请先检查更新。", update_payload_unavailable());
+    };
+    let download_dir = codex_plus_core::paths::default_app_state_dir().join("updates");
+    match codex_plus_core::update::perform_update(&release, &download_dir).await {
+        Ok(result) => ok(
+            "安装包已从 GitHub 下载并启动，请按安装向导完成更新。",
+            json!({
+                "currentVersion": env!("CARGO_PKG_VERSION"),
+                "latestVersion": result.release.version,
+                "releaseSummary": result.release.body,
+                "assetName": result.release.asset_name,
+                "assetUrl": result.release.asset_url,
+                "updateAvailable": false,
+                "automaticUpdateConfigured": true,
+                "updateRepository": codex_plus_core::update::DEFAULT_REPOSITORY,
+                "installedPath": result.installer_path.to_string_lossy(),
+                "launched": result.launched,
+                "progress": 100
+            }),
+        ),
+        Err(error) => failed(
+            &format!("安装更新失败：{error}"),
+            json!({
+                "currentVersion": env!("CARGO_PKG_VERSION"),
+                "latestVersion": release.version,
+                "releaseSummary": release.body,
+                "assetName": release.asset_name,
+                "assetUrl": release.asset_url,
+                "updateAvailable": true,
+                "automaticUpdateConfigured": true,
+                "updateRepository": codex_plus_core::update::DEFAULT_REPOSITORY,
+                "installedPath": Value::Null,
+                "launched": false,
+                "progress": 0
+            }),
+        ),
+    }
 }
 
-const UPDATE_DISABLED_MESSAGE: &str =
-    "Codex Compass 暂未配置独立更新源；为避免误装 CodexPlusPlus，自动下载已停用。";
-
-fn disabled_update_payload() -> Value {
+fn update_payload_unavailable() -> Value {
     json!({
         "currentVersion": env!("CARGO_PKG_VERSION"),
         "latestVersion": Value::Null,
-        "releaseSummary": "请从 Codex Compass 的发布目录手动安装新版本。",
+        "releaseSummary": "",
         "assetName": Value::Null,
         "assetUrl": Value::Null,
         "updateAvailable": false,
-        "automaticUpdateConfigured": false,
+        "automaticUpdateConfigured": true,
+        "updateRepository": codex_plus_core::update::DEFAULT_REPOSITORY,
         "installedPath": Value::Null,
         "launched": false,
         "progress": 0
@@ -4396,40 +4487,44 @@ mod tests {
     }
 
     #[test]
-    fn update_check_reports_automatic_updates_are_not_configured() {
-        let result = tauri::async_runtime::block_on(check_update());
+    fn update_payload_reports_github_updates_are_configured() {
+        let payload = update_payload_unavailable();
 
-        assert_eq!(result.status, "warning");
-        assert_eq!(result.message, UPDATE_DISABLED_MESSAGE);
-        assert_eq!(result.payload["currentVersion"], env!("CARGO_PKG_VERSION"));
-        assert_eq!(result.payload["automaticUpdateConfigured"], false);
-        assert_eq!(result.payload["updateAvailable"], false);
+        assert_eq!(payload["currentVersion"], env!("CARGO_PKG_VERSION"));
+        assert_eq!(payload["automaticUpdateConfigured"], true);
+        assert_eq!(
+            payload["updateRepository"],
+            codex_plus_core::update::DEFAULT_REPOSITORY
+        );
     }
 
     #[test]
-    fn update_install_is_disabled_even_with_an_upstream_release_payload() {
-        let release = codex_plus_core::update::Release {
-            version: "v999.0.0".to_string(),
-            url: "https://example.invalid/release".to_string(),
-            body: "untrusted".to_string(),
-            asset_name: Some("CodexPlusPlus.exe".to_string()),
-            asset_url: Some("https://example.invalid/CodexPlusPlus.exe".to_string()),
-        };
-        let result = tauri::async_runtime::block_on(perform_update(Some(release)));
-
-        assert_eq!(result.status, "failed");
-        assert_eq!(result.message, UPDATE_DISABLED_MESSAGE);
-        assert_eq!(result.payload["automaticUpdateConfigured"], false);
-        assert_eq!(result.payload["launched"], false);
-        assert!(result.payload["installedPath"].is_null());
+    fn launcher_handoff_joins_a_finished_thread() {
+        let handle = std::thread::spawn(|| {});
+        assert!(join_launcher_thread_with_timeout(
+            handle,
+            Duration::from_secs(1)
+        ));
     }
 
     #[test]
-    fn update_install_without_release_is_also_safely_disabled() {
+    fn launcher_handoff_does_not_block_forever() {
+        let handle = std::thread::spawn(|| {
+            std::thread::sleep(Duration::from_millis(100));
+        });
+        assert!(!join_launcher_thread_with_timeout(
+            handle,
+            Duration::from_millis(1)
+        ));
+    }
+
+    #[test]
+    fn update_install_without_release_requires_check_first() {
         let result = tauri::async_runtime::block_on(perform_update(None));
 
         assert_eq!(result.status, "failed");
-        assert_eq!(result.message, UPDATE_DISABLED_MESSAGE);
+        assert_eq!(result.message, "请先检查更新。");
+        assert_eq!(result.payload["automaticUpdateConfigured"], true);
     }
 
     #[test]

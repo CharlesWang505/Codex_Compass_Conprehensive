@@ -3,9 +3,11 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const DEFAULT_REPOSITORY: &str = "BigPizzaV3/CodexPlusPlus";
+pub const DEFAULT_REPOSITORY: &str = "CharlesWang505/Codex_Ultura";
 pub const DEFAULT_LATEST_JSON_URL: &str =
-    "https://github.com/BigPizzaV3/CodexPlusPlus/releases/latest/download/latest.json";
+    "https://api.github.com/repos/CharlesWang505/Codex_Ultura/releases/latest";
+pub const DEFAULT_LATEST_RELEASE_URL: &str =
+    "https://github.com/CharlesWang505/Codex_Ultura/releases/latest";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReleaseAsset {
@@ -146,6 +148,30 @@ pub fn release_from_latest_json_payload(payload: &Value) -> anyhow::Result<Relea
     })
 }
 
+pub fn release_from_github_latest_url(url: &str) -> anyhow::Result<Release> {
+    let trusted_tag_prefix = format!("https://github.com/{DEFAULT_REPOSITORY}/releases/tag/");
+    let tag = url
+        .strip_prefix(&trusted_tag_prefix)
+        .map(str::trim)
+        .filter(|value| !value.is_empty() && !value.contains('/'))
+        .ok_or_else(|| anyhow::anyhow!("GitHub latest 跳转没有返回可信的 Release 标签"))?;
+    parse_version_tag(tag)?;
+
+    let version = tag.trim_start_matches(['v', 'V']);
+    let asset_name = fallback_asset_name(version);
+    let asset_url = asset_name.as_ref().map(|name| {
+        format!("https://github.com/{DEFAULT_REPOSITORY}/releases/download/{tag}/{name}")
+    });
+
+    Ok(Release {
+        version: tag.to_string(),
+        url: url.to_string(),
+        body: "GitHub API 暂时不可用，已通过 Releases/latest 获取最新版本。".to_string(),
+        asset_name,
+        asset_url,
+    })
+}
+
 pub fn select_update_asset(assets: &[(String, String)]) -> Option<ReleaseAsset> {
     let named = assets
         .iter()
@@ -168,16 +194,35 @@ pub fn select_update_asset(assets: &[(String, String)]) -> Option<ReleaseAsset> 
 
 pub async fn fetch_latest_release(latest_json_url: &str) -> anyhow::Result<Release> {
     let client =
-        crate::http_client::proxied_client(&format!("Codex_Plus/{}", crate::version::VERSION))?;
-    let payload = client
+        crate::http_client::proxied_client(&format!("Codex-Compass/{}", crate::version::VERSION))?;
+    let response = client
         .get(latest_json_url)
         .header(reqwest::header::ACCEPT, "application/json")
+        .header("X-GitHub-Api-Version", "2022-11-28")
+        .send()
+        .await?;
+    if !response.status().is_success() {
+        if latest_json_url == DEFAULT_LATEST_JSON_URL {
+            return fetch_latest_release_from_redirect(&client).await;
+        }
+        return Err(response.error_for_status().unwrap_err().into());
+    }
+    let payload = response.json::<Value>().await?;
+    if payload.get("tag_name").is_some() {
+        release_from_github_payload(&payload)
+    } else {
+        release_from_latest_json_payload(&payload)
+    }
+}
+
+async fn fetch_latest_release_from_redirect(client: &reqwest::Client) -> anyhow::Result<Release> {
+    let response = client
+        .get(DEFAULT_LATEST_RELEASE_URL)
+        .header(reqwest::header::ACCEPT, "text/html")
         .send()
         .await?
-        .error_for_status()?
-        .json::<Value>()
-        .await?;
-    release_from_latest_json_payload(&payload)
+        .error_for_status()?;
+    release_from_github_latest_url(response.url().as_str())
 }
 
 pub async fn check_for_update(current_version: &str) -> anyhow::Result<UpdateCheck> {
@@ -197,12 +242,13 @@ pub async fn perform_update(
     release: &Release,
     download_dir: &Path,
 ) -> anyhow::Result<UpdateInstall> {
+    validate_release_source(release)?;
     let url = release
         .asset_url
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("没有可下载的 Release asset"))?;
     let bytes =
-        crate::http_client::proxied_client(&format!("Codex_Plus/{}", crate::version::VERSION))?
+        crate::http_client::proxied_client(&format!("Codex-Compass/{}", crate::version::VERSION))?
             .get(url)
             .send()
             .await?
@@ -216,6 +262,28 @@ pub async fn perform_update(
         installer_path,
         launched: true,
     })
+}
+
+pub fn validate_release_source(release: &Release) -> anyhow::Result<()> {
+    let name = release
+        .asset_name
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("Release 没有可下载的安装包"))?;
+    let url = release
+        .asset_url
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("Release 没有可下载地址"))?;
+    let trusted_prefix = format!(
+        "https://github.com/{}/releases/download/",
+        DEFAULT_REPOSITORY
+    );
+    if !url.starts_with(&trusted_prefix) {
+        anyhow::bail!("拒绝下载非 Codex Compass 官方 GitHub Release 资产");
+    }
+    if select_update_asset(&[(name.to_string(), url.to_string())]).is_none() {
+        anyhow::bail!("Release 资产不是当前平台支持的 Codex Compass 安装包");
+    }
+    Ok(())
 }
 
 pub fn download_asset_to(
@@ -271,6 +339,21 @@ fn platform_asset_rank(name: &str) -> u8 {
     2
 }
 
+fn fallback_asset_name(version: &str) -> Option<String> {
+    let arch = match std::env::consts::ARCH {
+        "x86_64" => "x64",
+        "aarch64" => "arm64",
+        _ => return None,
+    };
+    if cfg!(windows) {
+        return Some(format!("Codex_Compass_{version}_{arch}-setup.exe"));
+    }
+    if cfg!(target_os = "macos") {
+        return Some(format!("Codex_Compass_{version}_{arch}.dmg"));
+    }
+    None
+}
+
 fn is_macos_native_arch_asset(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     let native_arch_token = match std::env::consts::ARCH {
@@ -300,8 +383,7 @@ fn is_macos_native_arch_asset(name: &str) -> bool {
 }
 
 fn is_windows_installer_asset(name: &str) -> bool {
-    name.contains("codex")
-        && name.contains("plus")
+    is_supported_product_asset(name)
         && (name.ends_with(".msi")
             || name.ends_with("-setup.exe")
             || name.ends_with("_setup.exe")
@@ -312,7 +394,11 @@ fn is_windows_installer_asset(name: &str) -> bool {
 fn is_macos_installer_asset(name: &str) -> bool {
     // Loose shape check; arch preference is handled by platform_asset_rank
     // via is_macos_native_arch_asset.
-    name.contains("codex") && name.contains("plus") && name.ends_with(".dmg")
+    is_supported_product_asset(name) && name.ends_with(".dmg")
+}
+
+fn is_supported_product_asset(name: &str) -> bool {
+    name.contains("codex") && (name.contains("compass") || name.contains("plus"))
 }
 
 pub fn launch_installer(path: &Path) -> anyhow::Result<()> {
