@@ -120,14 +120,42 @@ fn relay_profile_model_catalog_value(home: &Path, profile: &RelayProfile) -> Val
 }
 
 fn hot_switch_model_catalog_value(home: &Path, settings: &BackendSettings) -> Value {
-    let models = unique_strings(
-        settings
-            .hot_switch_model_mappings
-            .iter()
-            .map(|mapping| mapping.model.trim().to_string())
-            .collect(),
-    );
-    let active_models = models.iter().cloned().collect::<HashSet<_>>();
+    let catalog_entries = crate::hot_switch_mapping::hot_switch_catalog_entries(settings);
+    let models = catalog_entries
+        .iter()
+        .map(|entry| entry.slug.clone())
+        .collect::<Vec<_>>();
+    let model_descriptors = catalog_entries
+        .iter()
+        .map(|entry| {
+            json!({
+                "model": entry.slug,
+                "id": entry.slug,
+                "slug": entry.slug,
+                "name": entry.display_name,
+                "displayName": entry.display_name,
+                "description": entry.display_name,
+                "hidden": false
+            })
+        })
+        .collect::<Vec<_>>();
+    let active_aliases = settings
+        .hot_switch_model_mappings
+        .iter()
+        .map(|mapping| mapping.model.trim().to_string())
+        .filter(|model| !model.is_empty())
+        .collect::<HashSet<_>>();
+    let duplicate_aliases = settings
+        .hot_switch_model_mappings
+        .iter()
+        .filter(|mapping| !mapping.model.trim().is_empty())
+        .fold(HashMap::<&str, usize>::new(), |mut counts, mapping| {
+            *counts.entry(mapping.model.trim()).or_default() += 1;
+            counts
+        })
+        .into_iter()
+        .filter_map(|(alias, count)| (count > 1).then(|| alias.to_string()))
+        .collect::<Vec<_>>();
     let selected_relay_ids = unique_strings(
         settings
             .hot_switch_model_mappings
@@ -141,20 +169,21 @@ fn hot_switch_model_catalog_value(home: &Path, settings: &BackendSettings) -> Va
     );
     let selected_relay_id_set = selected_relay_ids.iter().cloned().collect::<HashSet<_>>();
     let excluded_models = unique_strings(
-        settings
-            .relay_profiles
-            .iter()
-            .filter(|profile| !selected_relay_id_set.contains(profile.id.trim()))
-            .flat_map(relay_profile_model_ids)
-            .filter(|model| !active_models.contains(model))
+        duplicate_aliases
+            .into_iter()
+            .chain(
+                settings
+                    .relay_profiles
+                    .iter()
+                    .filter(|profile| !selected_relay_id_set.contains(profile.id.trim()))
+                    .flat_map(relay_profile_model_ids)
+                    .filter(|model| !active_aliases.contains(model)),
+            )
             .collect(),
     );
-    let requested_model = settings.hot_switch_model.trim();
-    let default_model = if active_models.contains(requested_model) {
-        requested_model.to_string()
-    } else {
-        models.first().cloned().unwrap_or_default()
-    };
+    let default_model = crate::hot_switch_mapping::hot_switch_default_model(settings)
+        .or_else(|| models.first().cloned())
+        .unwrap_or_default();
     let sources = settings
         .relay_profiles
         .iter()
@@ -197,6 +226,7 @@ fn hot_switch_model_catalog_value(home: &Path, settings: &BackendSettings) -> Va
         "provider_name": "8787 热切换",
         "default_model": default_model,
         "models": models,
+        "model_descriptors": model_descriptors,
         "excluded_models": excluded_models,
         "sources": sources,
         "responses_api": responses_api_status("unknown", "", "")
@@ -1064,5 +1094,58 @@ base_url = "http://127.0.0.1:58321/v1"
         assert_eq!(catalog["model"], "gpt-5");
         assert_eq!(catalog["default_model"], "gpt-5");
         assert_eq!(catalog["model_provider"], "codex-plus-hot-switch");
+    }
+
+    #[test]
+    fn hot_switch_catalog_keeps_duplicate_provider_routes_distinct_for_renderer_injection() {
+        let settings = BackendSettings {
+            hot_switch_enabled: true,
+            hot_switch_model_routing_enabled: true,
+            hot_switch_relay_id: "a".to_string(),
+            hot_switch_model: "gpt-5.5".to_string(),
+            relay_profiles: vec![
+                RelayProfile {
+                    id: "a".to_string(),
+                    name: "豆芽".to_string(),
+                    model_list: "gpt-5.5".to_string(),
+                    ..RelayProfile::default()
+                },
+                RelayProfile {
+                    id: "b".to_string(),
+                    name: "乾".to_string(),
+                    model_list: "gpt-5.5".to_string(),
+                    ..RelayProfile::default()
+                },
+            ],
+            hot_switch_model_mappings: vec![
+                HotSwitchModelMapping {
+                    model: "gpt-5.5".to_string(),
+                    upstream_model: "gpt-5.5".to_string(),
+                    relay_id: "a".to_string(),
+                    candidate_relay_ids: vec!["a".to_string(), "b".to_string()],
+                    ..HotSwitchModelMapping::default()
+                },
+                HotSwitchModelMapping {
+                    model: "gpt-5.5".to_string(),
+                    upstream_model: "gpt-5.5".to_string(),
+                    relay_id: "b".to_string(),
+                    candidate_relay_ids: vec!["a".to_string(), "b".to_string()],
+                    ..HotSwitchModelMapping::default()
+                },
+            ],
+            ..BackendSettings::default()
+        };
+
+        let catalog = hot_switch_model_catalog_value(Path::new("C:/Users/test/.codex"), &settings);
+        let models = catalog["models"].as_array().unwrap();
+        let descriptors = catalog["model_descriptors"].as_array().unwrap();
+        let excluded = catalog["excluded_models"].as_array().unwrap();
+
+        assert_eq!(models[0], "gpt-5.5--cc-a");
+        assert_eq!(models[1], "gpt-5.5--cc-b");
+        assert_eq!(descriptors[0]["displayName"], "gpt-5.5 · 豆芽");
+        assert_eq!(descriptors[1]["displayName"], "gpt-5.5 · 乾");
+        assert!(excluded.iter().any(|model| model == "gpt-5.5"));
+        assert_eq!(catalog["default_model"], "gpt-5.5--cc-a");
     }
 }

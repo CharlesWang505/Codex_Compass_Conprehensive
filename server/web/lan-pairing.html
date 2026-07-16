@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f8fb" />
+    <title>Codex Compass 局域网配对</title>
+    <link rel="stylesheet" href="/lan-pairing.css" />
+  </head>
+  <body>
+    <main class="pairing-shell">
+      <header class="pairing-header">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <div>
+          <strong>Codex Compass</strong>
+          <span>局域网设备配对</span>
+        </div>
+        <span id="lanBadge" class="lan-badge">同一局域网</span>
+      </header>
+
+      <section id="requestView" class="pairing-content">
+        <div class="pairing-symbol" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="4" y="3" width="16" height="11" rx="2"></rect>
+            <path d="M8 21h8M12 14v7"></path>
+            <path d="M7 8h.01M10 8h7"></path>
+          </svg>
+        </div>
+        <h1>连接这台电脑</h1>
+        <p id="introText">输入电脑端显示的六位配对码，或者直接向电脑发起绑定请求。</p>
+
+        <label class="device-field">
+          <span>手机名称</span>
+          <input id="deviceNameInput" maxlength="80" autocomplete="off" />
+        </label>
+
+        <div class="code-entry">
+          <label for="pairingCodeInput">六位配对码</label>
+          <div>
+            <input
+              id="pairingCodeInput"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              autocomplete="one-time-code"
+              placeholder="000000"
+            />
+            <button id="submitCodeButton" type="button">提交配对</button>
+          </div>
+        </div>
+
+        <div class="request-divider"><span>或</span></div>
+
+        <button id="directRequestButton" class="secondary-command" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          向电脑发起配对请求
+        </button>
+        <p class="security-note">所有请求都需要电脑端确认。校验码不一致时请立即拒绝。</p>
+      </section>
+
+      <section id="waitingView" class="pairing-content waiting-view" hidden>
+        <div class="waiting-ring" aria-hidden="true"></div>
+        <h1>等待电脑确认</h1>
+        <p>请在 Codex Compass 的“手机远控”页面核对下方校验码。</p>
+        <div class="verification-code">
+          <span>双端校验码</span>
+          <strong id="verificationCode">------</strong>
+        </div>
+        <dl class="request-details">
+          <div><dt>请求设备</dt><dd id="waitingDeviceName">-</dd></div>
+          <div><dt>有效时间</dt><dd id="expiryText">2 分钟</dd></div>
+          <div><dt>连接方式</dt><dd id="pairingModeText">局域网请求</dd></div>
+        </dl>
+        <button id="cancelButton" class="secondary-command" type="button">取消并返回</button>
+      </section>
+
+      <section id="resultView" class="pairing-content result-view" hidden>
+        <div id="resultSymbol" class="result-symbol" aria-hidden="true">!</div>
+        <h1 id="resultTitle">配对未完成</h1>
+        <p id="resultMessage">请返回后重试。</p>
+        <button id="retryButton" type="button">重新配对</button>
+      </section>
+
+      <footer>手机和电脑必须处于同一可信网络。局域网服务不会开放 Codex、8787 或 app-server。</footer>
+    </main>
+    <script src="/lan-pairing.js"></script>
+  </body>
+</html>

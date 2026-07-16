@@ -523,6 +523,9 @@ fn list_local_sessions_reads_codex_threads_ordered_by_update_time() {
     assert_eq!(sessions.len(), 2);
     assert_eq!(sessions[0].id, "t2");
     assert_eq!(sessions[0].title, "Second");
+    let limited = adapter.list_local_sessions_limited(1).unwrap();
+    assert_eq!(limited.len(), 1);
+    assert_eq!(limited[0].id, "t2");
     assert_eq!(sessions[0].model_provider, "custom");
     assert!(sessions[0].archived);
     assert_eq!(sessions[1].id, "t1");
@@ -564,6 +567,9 @@ fn list_local_sessions_reads_codex_automation_runs_schema() {
     assert_eq!(sessions.len(), 2);
     assert_eq!(sessions[0].id, "t2");
     assert_eq!(sessions[0].title, "Second");
+    let limited = adapter.list_local_sessions_limited(1).unwrap();
+    assert_eq!(limited.len(), 1);
+    assert_eq!(limited[0].id, "t2");
     assert_eq!(sessions[0].cwd, "C:/b");
     assert!(sessions[0].archived);
     assert_eq!(sessions[0].db_path, db_path.to_string_lossy());

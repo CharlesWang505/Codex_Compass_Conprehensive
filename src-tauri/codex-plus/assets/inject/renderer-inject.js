@@ -92,11 +92,148 @@
 
   function installCodexPlusForceChineseLocale() {
     const config = window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__;
-    if (!config || config.enabled !== true) return;
-    if (window.__codexPlusForceChineseLocaleInstalled === "1") return;
-    window.__codexPlusForceChineseLocaleInstalled = "1";
+    if (!config) return;
+    const enabled = config.enabled === true;
     const locale = typeof config.locale === "string" && config.locale ? config.locale : "zh-CN";
+    const installationKey = `2:${enabled ? "on" : "off"}:${locale}`;
+    if (window.__codexPlusForceChineseLocaleInstalled === installationKey) return;
+    window.__codexPlusForceChineseLocaleInstalled = installationKey;
     const languages = [locale, "zh", "en-US", "en"];
+    const managedLocaleStorageKey = "codexPlus.forceChineseLocale.managed.v1";
+    const localeReloadStorageKey = "codexPlus.forceChineseLocale.reload.v1";
+
+    const readManagedLocale = () => {
+      try {
+        const value = JSON.parse(window.localStorage.getItem(managedLocaleStorageKey) || "null");
+        return value && typeof value === "object" ? value : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const writeManagedLocale = (value) => {
+      try {
+        if (value) {
+          window.localStorage.setItem(managedLocaleStorageKey, JSON.stringify(value));
+        } else {
+          window.localStorage.removeItem(managedLocaleStorageKey);
+        }
+      } catch {
+      }
+    };
+
+    const waitForElectronBridge = () => new Promise((resolve) => {
+      const startedAt = Date.now();
+      const check = () => {
+        const bridge = window.electronBridge;
+        if (bridge && typeof bridge.sendMessageFromView === "function") {
+          resolve(bridge);
+          return;
+        }
+        if (Date.now() - startedAt >= 5000) {
+          resolve(null);
+          return;
+        }
+        window.setTimeout(check, 50);
+      };
+      check();
+    });
+
+    const callCodexSettingApi = (bridge, method, params) => new Promise((resolve, reject) => {
+      const requestId = typeof crypto?.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `codex-plus-locale-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      let timeout;
+      const cleanup = () => {
+        window.clearTimeout(timeout);
+        window.removeEventListener("message", onMessage);
+      };
+      const onMessage = (event) => {
+        const message = event?.data;
+        if (!message || message.type !== "fetch-response" || message.requestId !== requestId) return;
+        cleanup();
+        if (message.responseType !== "success") {
+          reject(new Error(message.error || `Codex ${method} failed`));
+          return;
+        }
+        try {
+          resolve(JSON.parse(message.bodyJsonString || "null"));
+        } catch (error) {
+          reject(error);
+        }
+      };
+      window.addEventListener("message", onMessage);
+      timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error(`Codex ${method} timed out`));
+      }, 5000);
+      const message = {
+        type: "fetch",
+        requestId,
+        method: "POST",
+        url: `vscode://codex/${method}`,
+        body: JSON.stringify({ params }),
+      };
+      Promise.resolve(bridge.sendMessageFromView(message)).catch((error) => {
+        cleanup();
+        reject(error);
+      });
+    });
+
+    const reloadAfterLocaleChange = (value) => {
+      const marker = JSON.stringify(value);
+      try {
+        if (window.sessionStorage.getItem(localeReloadStorageKey) === marker) return;
+        window.sessionStorage.setItem(localeReloadStorageKey, marker);
+      } catch {
+      }
+      window.location.reload();
+    };
+
+    const clearLocaleReloadMarker = () => {
+      try {
+        window.sessionStorage.removeItem(localeReloadStorageKey);
+      } catch {
+      }
+    };
+
+    const syncOfficialLocaleSetting = async () => {
+      const managed = readManagedLocale();
+      if (!enabled && !managed) return;
+      const bridge = await waitForElectronBridge();
+      if (!bridge) return;
+      const response = await callCodexSettingApi(bridge, "get-setting", { key: "localeOverride" });
+      const currentValue = response?.value ?? null;
+
+      if (enabled) {
+        if (currentValue === locale) {
+          clearLocaleReloadMarker();
+          return;
+        }
+        if (!managed) {
+          writeManagedLocale({ appliedLocale: locale, previousValue: currentValue });
+        }
+        await callCodexSettingApi(bridge, "set-setting", { key: "localeOverride", value: locale });
+        reloadAfterLocaleChange(locale);
+        return;
+      }
+
+      if (currentValue !== managed.appliedLocale) {
+        writeManagedLocale(null);
+        clearLocaleReloadMarker();
+        return;
+      }
+      const previousValue = managed.previousValue ?? null;
+      await callCodexSettingApi(bridge, "set-setting", {
+        key: "localeOverride",
+        value: previousValue,
+      });
+      writeManagedLocale(null);
+      reloadAfterLocaleChange(previousValue);
+    };
+
+    syncOfficialLocaleSetting().catch(() => {});
+    if (!enabled) return;
 
     const defineNavigatorGetter = (name, value) => {
       try {
@@ -4345,7 +4482,7 @@
     return Array.from(new Set(values.filter((value) => typeof value === "string" && value.trim().length > 0)));
   }
 
-  let codexModelCatalog = { status: "loading", model: "", default_model: "", model_provider: "", provider_name: "", models: [], excluded_models: [], sources: [], responses_api: { status: "unknown", message: "" } };
+  let codexModelCatalog = { status: "loading", model: "", default_model: "", model_provider: "", provider_name: "", models: [], model_descriptors: [], excluded_models: [], sources: [], responses_api: { status: "unknown", message: "" } };
   let codexModelCatalogLoadedAt = 0;
   let codexModelCatalogPromise = null;
   let codexModelWhitelistRefreshTimer = 0;
@@ -4365,6 +4502,7 @@
           model_provider: "",
           provider_name: "",
           models: [],
+          model_descriptors: [],
           excluded_models: [],
           sources: [],
           responses_api: { status: "unknown", message: "" },
@@ -4413,7 +4551,7 @@
     if (!force && codexModelCatalogLoadedAt && Date.now() - codexModelCatalogLoadedAt < 10000) return codexModelCatalog;
     codexModelCatalogPromise = postJson("/codex-model-catalog", {})
       .then(async (result) => {
-        codexModelCatalog = result && typeof result === "object" ? result : { status: "failed", model: "", default_model: "", model_provider: "", provider_name: "", models: [], excluded_models: [], sources: [], responses_api: { status: "unknown", message: "" } };
+        codexModelCatalog = result && typeof result === "object" ? result : { status: "failed", model: "", default_model: "", model_provider: "", provider_name: "", models: [], model_descriptors: [], excluded_models: [], sources: [], responses_api: { status: "unknown", message: "" } };
         if ((!codexModelCatalog.models || codexModelCatalog.models.length === 0) && codexModelCatalog.status === "not_configured") {
           try {
             const settingsPromise = postJson("/settings/get", {});
@@ -4441,7 +4579,7 @@
         return codexModelCatalog;
       })
       .catch((error) => {
-        codexModelCatalog = { status: "failed", message: String(error?.message || error), model: "", default_model: "", model_provider: "", provider_name: "", models: [], excluded_models: [], sources: [], responses_api: { status: "unknown", message: "" } };
+        codexModelCatalog = { status: "failed", message: String(error?.message || error), model: "", default_model: "", model_provider: "", provider_name: "", models: [], model_descriptors: [], excluded_models: [], sources: [], responses_api: { status: "unknown", message: "" } };
         codexModelCatalogLoadedAt = Date.now();
         return codexModelCatalog;
       })
@@ -4455,18 +4593,28 @@
     return ["minimal", "low", "medium", "high", "xhigh"].map((reasoningEffort) => ({ reasoningEffort, description: `${reasoningEffort} effort` }));
   }
 
+  function codexPlusConfiguredModelDescriptor(modelName) {
+    if (!Array.isArray(codexModelCatalog.model_descriptors)) return null;
+    return codexModelCatalog.model_descriptors.find((item) => {
+      if (!item || typeof item !== "object") return false;
+      return [item.model, item.id, item.slug].some((value) => value === modelName);
+    }) || null;
+  }
+
   function codexPlusModelDescriptor(modelName) {
+    const configured = codexPlusConfiguredModelDescriptor(modelName);
+    const displayName = configured?.displayName || configured?.display_name || configured?.name || modelName;
     return {
       model: modelName,
       id: modelName,
       slug: modelName,
-      name: modelName,
-      displayName: modelName,
-      description: codexModelCatalog.provider_name || codexModelCatalog.model_provider || "Custom model",
+      name: displayName,
+      displayName,
+      description: configured?.description || codexModelCatalog.provider_name || codexModelCatalog.model_provider || "Custom model",
       hidden: false,
       isDefault: (codexModelCatalog.default_model || codexModelCatalog.model) === modelName,
-      defaultReasoningEffort: "medium",
-      supportedReasoningEfforts: modelReasoningEfforts(),
+      defaultReasoningEffort: configured?.defaultReasoningEffort || "medium",
+      supportedReasoningEfforts: Array.isArray(configured?.supportedReasoningEfforts) ? configured.supportedReasoningEfforts : modelReasoningEfforts(),
     };
   }
 
@@ -4521,9 +4669,21 @@
       }
     });
     customModels.forEach((modelName) => {
-      if (!existing.has(modelName)) {
-        models.push(codexPlusModelDescriptor(modelName));
+      const descriptor = codexPlusModelDescriptor(modelName);
+      const current = existing.get(modelName);
+      if (!current) {
+        models.push(descriptor);
         changed = true;
+        return;
+      }
+      for (const key of ["id", "slug", "name", "displayName", "description", "hidden", "isDefault", "defaultReasoningEffort", "supportedReasoningEfforts"]) {
+        if (descriptor[key] !== undefined && current[key] !== descriptor[key]) {
+          try {
+            current[key] = descriptor[key];
+            changed = true;
+          } catch {
+          }
+        }
       }
     });
     return changed;

@@ -107,6 +107,25 @@ pub struct LocalSessionsPayload {
     pub db_path: String,
     pub db_paths: Vec<String>,
     pub sessions: Vec<codex_plus_data::LocalSession>,
+    pub offset: usize,
+    pub limit: usize,
+    pub has_more: bool,
+}
+
+const DEFAULT_LOCAL_SESSIONS_PAGE_SIZE: usize = 50;
+const MAX_LOCAL_SESSIONS_PAGE_SIZE: usize = 100;
+
+fn default_local_sessions_page_size() -> usize {
+    DEFAULT_LOCAL_SESSIONS_PAGE_SIZE
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListLocalSessionsRequest {
+    #[serde(default)]
+    pub offset: usize,
+    #[serde(default = "default_local_sessions_page_size")]
+    pub limit: usize,
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -721,7 +740,7 @@ pub fn save_settings(settings: BackendSettings) -> CommandResult<SettingsPayload
         Err(error) => failed(
             &format!("保存设置失败：{error}"),
             SettingsPayload {
-                settings,
+                settings: current,
                 settings_path: codex_plus_core::paths::default_settings_path()
                     .to_string_lossy()
                     .to_string(),
@@ -1179,14 +1198,23 @@ pub fn dismiss_pending_provider_import() -> CommandResult<PendingProviderImportP
 }
 
 #[tauri::command]
-pub fn list_local_sessions() -> CommandResult<LocalSessionsPayload> {
+pub fn list_local_sessions(
+    request: Option<ListLocalSessionsRequest>,
+) -> CommandResult<LocalSessionsPayload> {
+    let request = request.unwrap_or(ListLocalSessionsRequest {
+        offset: 0,
+        limit: DEFAULT_LOCAL_SESSIONS_PAGE_SIZE,
+    });
+    let offset = request.offset;
+    let limit = request.limit.clamp(1, MAX_LOCAL_SESSIONS_PAGE_SIZE);
+    let fetch_limit = offset.saturating_add(limit).saturating_add(1);
     let home = codex_plus_core::codex_sqlite::default_codex_home_dir();
     let db_paths = codex_plus_core::codex_sqlite::codex_session_db_paths_from_home(&home);
     let mut sessions = Vec::new();
     let mut errors = Vec::new();
     for db_path in &db_paths {
         let adapter = local_session_adapter(db_path);
-        match adapter.list_local_sessions() {
+        match adapter.list_local_sessions_limited(fetch_limit) {
             Ok(mut items) => sessions.append(&mut items),
             Err(error) if db_path.exists() => {
                 errors.push(format!("{}: {error}", db_path.to_string_lossy()));
@@ -1202,6 +1230,8 @@ pub fn list_local_sessions() -> CommandResult<LocalSessionsPayload> {
     });
     let mut seen_session_ids = std::collections::HashSet::new();
     sessions.retain(|session| seen_session_ids.insert(session.id.clone()));
+    let has_more = sessions.len() > offset.saturating_add(limit);
+    let sessions = sessions.into_iter().skip(offset).take(limit).collect();
     let payload = LocalSessionsPayload {
         db_path: db_paths
             .first()
@@ -1212,10 +1242,17 @@ pub fn list_local_sessions() -> CommandResult<LocalSessionsPayload> {
             .map(|path| path.to_string_lossy().to_string())
             .collect(),
         sessions,
+        offset,
+        limit,
+        has_more,
     };
+    let page = offset / limit + 1;
     if errors.is_empty() {
         ok(
-            &format!("已读取 {} 个本地会话。", payload.sessions.len()),
+            &format!(
+                "已读取第 {page} 页，共 {} 个本地会话。",
+                payload.sessions.len()
+            ),
             payload,
         )
     } else {
@@ -1821,6 +1858,65 @@ fn merge_manual_provider_sync_targets(
             .cmp(&left.is_current_provider)
             .then_with(|| left.id.cmp(&right.id))
     });
+}
+
+#[tauri::command]
+pub async fn preview_session_index_cleanup() -> CommandResult<Value> {
+    let result = tauri::async_runtime::spawn_blocking(|| {
+        codex_plus_data::preview_session_index_cleanup(None)
+    })
+    .await
+    .map_err(|error| anyhow::anyhow!("session index cleanup preview task failed: {error}"))
+    .and_then(|result| result);
+    match result {
+        Ok(preview) => ok(
+            &format!(
+                "发现 {} 条仅存在于任务索引中的候选记录。",
+                preview.candidates.len()
+            ),
+            json!({
+                "snapshotSha256": preview.snapshot_sha256,
+                "candidates": preview.candidates,
+            }),
+        ),
+        Err(error) => failed(&format!("预览失效任务索引失败：{error}"), json!({})),
+    }
+}
+
+#[tauri::command]
+pub async fn apply_session_index_cleanup(
+    snapshot_sha256: String,
+    thread_ids: Vec<String>,
+) -> CommandResult<Value> {
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        codex_plus_data::apply_session_index_cleanup(None, &snapshot_sha256, &thread_ids)
+    })
+    .await
+    .map_err(|error| anyhow::anyhow!("session index cleanup task failed: {error}"));
+    match result {
+        Ok(Ok(cleanup)) => ok(
+            &format!(
+                "已清理 {} 条失效任务索引；原索引已完整备份。",
+                cleanup.pruned_entries
+            ),
+            json!({
+                "prunedEntries": cleanup.pruned_entries,
+                "backupDir": cleanup.backup_dir,
+            }),
+        ),
+        Ok(Err(error)) => {
+            let backup_hint = error
+                .backup_dir
+                .as_ref()
+                .map(|path| format!(" 备份目录：{}。", path.to_string_lossy()))
+                .unwrap_or_default();
+            failed(
+                &format!("清理失效任务索引失败：{}{backup_hint}", error.message),
+                json!({ "backupDir": error.backup_dir }),
+            )
+        }
+        Err(error) => failed(&format!("清理失效任务索引失败：{error}"), json!({})),
+    }
 }
 
 #[tauri::command]
@@ -4792,7 +4888,7 @@ mod tests {
         unsafe {
             std::env::set_var("CODEX_HOME", &codex_home);
         }
-        let result = list_local_sessions();
+        let result = list_local_sessions(None);
         restore_codex_home(previous_codex_home);
 
         assert_eq!(result.status, "ok");

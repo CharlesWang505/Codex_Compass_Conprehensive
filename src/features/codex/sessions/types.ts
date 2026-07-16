@@ -49,6 +49,26 @@ export type ProviderSyncResult = {
   syncMessage: string
 }
 
+export type SessionIndexCleanupCandidate = {
+  id: string
+  threadName: string
+  updatedAt: string
+}
+
+export type SessionIndexCleanupPreviewResult = {
+  status: string
+  message: string
+  snapshotSha256: string
+  candidates: SessionIndexCleanupCandidate[]
+}
+
+export type SessionIndexCleanupApplyResult = {
+  status: string
+  message: string
+  prunedEntries: number
+  backupDir: string | null
+}
+
 export type ConfirmDeleteState = {
   sessions: LocalSession[]
 }

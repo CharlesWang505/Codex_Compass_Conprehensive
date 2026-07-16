@@ -1,0 +1,10 @@
+# Replace relay.example.com with the user's own relay domain.
+relay.example.com {
+    encode zstd gzip
+
+    request_body {
+        max_size 11MB
+    }
+
+    reverse_proxy 127.0.0.1:4178
+}

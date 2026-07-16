@@ -88,15 +88,20 @@ pub fn build_mapping_scan(
         .into_iter()
         .map(|profile| profile.id)
         .collect::<HashSet<_>>();
-    let previous_by_alias = settings
+    let previous_by_alias_and_relay = settings
         .hot_switch_model_mappings
         .iter()
-        .map(|mapping| (mapping.model.as_str(), mapping))
+        .map(|mapping| ((mapping.model.as_str(), mapping.relay_id.as_str()), mapping))
         .collect::<HashMap<_, _>>();
-    let previous_by_upstream = settings
+    let previous_by_upstream_and_relay = settings
         .hot_switch_model_mappings
         .iter()
-        .map(|mapping| (mapping.upstream_model.as_str(), mapping))
+        .map(|mapping| {
+            (
+                (mapping.upstream_model.as_str(), mapping.relay_id.as_str()),
+                mapping,
+            )
+        })
         .collect::<HashMap<_, _>>();
     let mut candidates = HashMap::<String, Vec<String>>::new();
 
@@ -117,7 +122,11 @@ pub fn build_mapping_scan(
     for mapping in &settings.hot_switch_model_mappings {
         for relay_id in &mapping.candidate_relay_ids {
             if failed_relay_ids.contains(relay_id.as_str()) && valid_relay_ids.contains(relay_id) {
-                let relay_ids = candidates.entry(mapping.model.clone()).or_default();
+                let upstream_model = mapping.upstream_model.trim();
+                if upstream_model.is_empty() {
+                    continue;
+                }
+                let relay_ids = candidates.entry(upstream_model.to_string()).or_default();
                 if !relay_ids.contains(relay_id) {
                     relay_ids.push(relay_id.clone());
                 }
@@ -127,55 +136,52 @@ pub fn build_mapping_scan(
 
     let mut models = candidates.keys().cloned().collect::<Vec<_>>();
     models.sort_by_key(|model| model.to_ascii_lowercase());
-    let mappings = models
-        .into_iter()
-        .filter_map(|model| {
-            let mut relay_ids = candidates.remove(&model).unwrap_or_default();
-            relay_ids.sort_by_key(|relay_id| {
-                relay_order
-                    .get(relay_id.as_str())
-                    .copied()
-                    .unwrap_or(usize::MAX)
-            });
-            relay_ids.dedup();
-            // 用户可以把 Codex 中显示的模型名改成别名。重新扫描时应按真实上游
-            // 模型找到旧规则，而不是只按已经改过的别名匹配。
-            let old = previous_by_upstream
-                .get(model.as_str())
+    let conflict_count = candidates
+        .values()
+        .filter(|relay_ids| relay_ids.len() > 1)
+        .count();
+    let mut mappings = Vec::new();
+    for upstream_model in models {
+        let mut relay_ids = candidates.remove(&upstream_model).unwrap_or_default();
+        relay_ids.sort_by_key(|relay_id| {
+            relay_order
+                .get(relay_id.as_str())
                 .copied()
-                .filter(|mapping| relay_ids.contains(&mapping.relay_id))
-                .or_else(|| previous_by_alias.get(model.as_str()).copied());
-            let relay_id = old
-                .filter(|mapping| relay_ids.contains(&mapping.relay_id))
-                .map(|mapping| mapping.relay_id.clone())
-                .or_else(|| relay_ids.first().cloned())?;
-            let upstream_model = old
-                .filter(|mapping| {
-                    mapping.relay_id == relay_id && !mapping.upstream_model.trim().is_empty()
-                })
-                .map(|mapping| mapping.upstream_model.clone())
-                .unwrap_or_else(|| model.clone());
-            Some(HotSwitchModelMapping {
+                .unwrap_or(usize::MAX)
+        });
+        relay_ids.dedup();
+
+        // 每个供应商保留独立规则。同名模型仍共享候选列表，方便配置故障切换，
+        // 但不会再因为上游模型名相同而覆盖另一个供应商。
+        for relay_id in relay_ids.iter().cloned() {
+            let old = previous_by_upstream_and_relay
+                .get(&(upstream_model.as_str(), relay_id.as_str()))
+                .copied()
+                .or_else(|| {
+                    previous_by_alias_and_relay
+                        .get(&(upstream_model.as_str(), relay_id.as_str()))
+                        .copied()
+                });
+            mappings.push(HotSwitchModelMapping {
                 model: old
                     .filter(|mapping| !mapping.model.trim().is_empty())
                     .map(|mapping| mapping.model.clone())
-                    .unwrap_or_else(|| model.clone()),
-                upstream_model,
+                    .unwrap_or_else(|| upstream_model.clone()),
+                upstream_model: old
+                    .filter(|mapping| !mapping.upstream_model.trim().is_empty())
+                    .map(|mapping| mapping.upstream_model.clone())
+                    .unwrap_or_else(|| upstream_model.clone()),
                 relay_id,
-                candidate_relay_ids: relay_ids,
+                candidate_relay_ids: relay_ids.clone(),
                 fallback_relay_ids: old
                     .map(|mapping| mapping.fallback_relay_ids.clone())
                     .unwrap_or_default(),
                 reasoning_override: old
                     .map(|mapping| mapping.reasoning_override.clone())
                     .unwrap_or_default(),
-            })
-        })
-        .collect::<Vec<_>>();
-    let conflict_count = mappings
-        .iter()
-        .filter(|mapping| mapping.candidate_relay_ids.len() > 1)
-        .count();
+            });
+        }
+    }
     let failed_provider_count = providers.iter().filter(|scan| !scan.succeeded()).count();
     HotSwitchMappingScan {
         mappings,
@@ -214,11 +220,7 @@ pub fn resolve_hot_switch_route(
         }));
     }
     if settings.hot_switch_model_routing_enabled && !requested_model.is_empty() {
-        if let Some(mapping) = settings
-            .hot_switch_model_mappings
-            .iter()
-            .find(|mapping| mapping.model == requested_model)
-        {
+        if let Some(mapping) = hot_switch_mapping_for_catalog_slug(settings, &requested_model) {
             let mut relay = relay_profile_by_id(settings, &mapping.relay_id).ok_or_else(|| {
                 anyhow::anyhow!(
                     "模型「{}」映射的供应商「{}」不存在",
@@ -252,13 +254,14 @@ pub fn resolve_hot_switch_route(
                 mapped: true,
             }));
         }
+        anyhow::bail!(
+            "模型「{}」没有可用映射，请重新生成模型目录或检查映射规则",
+            requested_model
+        );
     }
 
     let mut relay = settings.hot_switch_relay_profile();
-    let upstream_model = if settings.hot_switch_model_routing_enabled && !requested_model.is_empty()
-    {
-        requested_model.clone()
-    } else if !settings.hot_switch_model.trim().is_empty() {
+    let upstream_model = if !settings.hot_switch_model.trim().is_empty() {
         settings.hot_switch_model.trim().to_string()
     } else {
         requested_model.clone()
@@ -275,50 +278,50 @@ pub fn resolve_hot_switch_route(
 }
 
 pub fn hot_switch_catalog_entries(settings: &BackendSettings) -> Vec<ModelCatalogEntry> {
+    if settings.hot_switch_auto_model_enabled {
+        return vec![ModelCatalogEntry {
+            slug: HOT_SWITCH_AUTO_MODEL_ID.to_string(),
+            display_name: HOT_SWITCH_AUTO_MODEL_DISPLAY_NAME.to_string(),
+            suffix_window: None,
+        }];
+    }
+    if !settings.hot_switch_model_routing_enabled {
+        return Vec::new();
+    }
+
     let provider_names = settings
         .relay_profiles
         .iter()
         .map(|profile| (profile.id.as_str(), profile.name.as_str()))
         .collect::<HashMap<_, _>>();
-    let mut entries = Vec::new();
-    if settings.hot_switch_auto_model_enabled {
-        entries.push(ModelCatalogEntry {
-            slug: HOT_SWITCH_AUTO_MODEL_ID.to_string(),
-            display_name: HOT_SWITCH_AUTO_MODEL_DISPLAY_NAME.to_string(),
-            suffix_window: None,
-        });
-    }
-    if settings.hot_switch_model_routing_enabled {
-        entries.extend(
-            settings
-                .hot_switch_model_mappings
-                .iter()
-                .filter(|mapping| mapping.model != HOT_SWITCH_AUTO_MODEL_ID)
-                .map(|mapping| ModelCatalogEntry {
-                    slug: mapping.model.clone(),
-                    display_name: provider_names
-                        .get(mapping.relay_id.as_str())
-                        .filter(|name| !name.trim().is_empty())
-                        .map(|name| format!("{} · {}", mapping.model, name))
-                        .unwrap_or_else(|| mapping.model.clone()),
-                    suffix_window: mapping_context_window(settings, mapping),
-                }),
-        );
-    }
-    entries
+    hot_switch_catalog_routes(settings)
+        .into_iter()
+        .filter(|(mapping, _)| mapping.model != HOT_SWITCH_AUTO_MODEL_ID)
+        .map(|(mapping, slug)| ModelCatalogEntry {
+            slug,
+            display_name: provider_names
+                .get(mapping.relay_id.as_str())
+                .filter(|name| !name.trim().is_empty())
+                .map(|name| format!("{} · {}", mapping.model, name))
+                .unwrap_or_else(|| mapping.model.clone()),
+            suffix_window: mapping_context_window(settings, mapping),
+        })
+        .collect()
 }
 
 pub fn hot_switch_default_model(settings: &BackendSettings) -> Option<String> {
     if settings.hot_switch_auto_model_enabled {
         return Some(HOT_SWITCH_AUTO_MODEL_ID.to_string());
     }
-    let matching = settings.hot_switch_model_mappings.iter().find(|mapping| {
-        mapping.relay_id == settings.hot_switch_relay_id
-            && mapping.upstream_model == settings.hot_switch_model
-    });
-    matching
-        .or_else(|| settings.hot_switch_model_mappings.first())
-        .map(|mapping| mapping.model.clone())
+    let routes = hot_switch_catalog_routes(settings);
+    routes
+        .iter()
+        .find(|(mapping, _)| {
+            mapping.relay_id == settings.hot_switch_relay_id
+                && mapping.upstream_model == settings.hot_switch_model
+        })
+        .or_else(|| routes.first())
+        .map(|(_, slug)| slug.clone())
         .or_else(|| {
             (!settings.hot_switch_model.trim().is_empty())
                 .then(|| settings.hot_switch_model.trim().to_string())
@@ -339,24 +342,28 @@ pub fn hot_switch_models_api_payload(
         ))
         .ok();
     }
+    let owner_by_slug = hot_switch_catalog_routes(settings)
+        .into_iter()
+        .map(|(mapping, slug)| {
+            let owner = settings
+                .relay_profiles
+                .iter()
+                .find(|profile| profile.id == mapping.relay_id)
+                .map(|profile| profile.name.as_str())
+                .unwrap_or(mapping.relay_id.as_str())
+                .to_string();
+            (slug, owner)
+        })
+        .collect::<HashMap<_, _>>();
     let data = entries
         .iter()
         .map(|entry| {
             let owner = if entry.slug == HOT_SWITCH_AUTO_MODEL_ID {
                 "Codex Compass"
             } else {
-                settings
-                    .hot_switch_model_mappings
-                    .iter()
-                    .find(|mapping| mapping.model == entry.slug)
-                    .and_then(|mapping| {
-                        settings
-                            .relay_profiles
-                            .iter()
-                            .find(|profile| profile.id == mapping.relay_id)
-                            .map(|profile| profile.name.as_str())
-                            .or(Some(mapping.relay_id.as_str()))
-                    })
+                owner_by_slug
+                    .get(entry.slug.as_str())
+                    .map(String::as_str)
                     .unwrap_or("Codex Compass")
             };
             json!({
@@ -371,6 +378,102 @@ pub fn hot_switch_models_api_payload(
         "object": "list",
         "data": data
     }))
+}
+
+fn hot_switch_catalog_routes(settings: &BackendSettings) -> Vec<(&HotSwitchModelMapping, String)> {
+    let alias_counts = settings
+        .hot_switch_model_mappings
+        .iter()
+        .filter(|mapping| mapping.model != HOT_SWITCH_AUTO_MODEL_ID)
+        .fold(HashMap::<&str, usize>::new(), |mut counts, mapping| {
+            *counts.entry(mapping.model.as_str()).or_default() += 1;
+            counts
+        });
+    let reserved_aliases = alias_counts.keys().copied().collect::<HashSet<_>>();
+    let mut used_slugs = HashSet::new();
+
+    settings
+        .hot_switch_model_mappings
+        .iter()
+        .filter(|mapping| mapping.model != HOT_SWITCH_AUTO_MODEL_ID)
+        .map(|mapping| {
+            let duplicate_alias = alias_counts
+                .get(mapping.model.as_str())
+                .copied()
+                .unwrap_or_default()
+                > 1;
+            let mut slug = if duplicate_alias {
+                duplicate_catalog_slug(mapping)
+            } else {
+                mapping.model.clone()
+            };
+            let base = slug.clone();
+            let mut suffix = 2;
+            while used_slugs.contains(&slug)
+                || (duplicate_alias && reserved_aliases.contains(slug.as_str()))
+            {
+                slug = format!("{base}-{suffix}");
+                suffix += 1;
+            }
+            used_slugs.insert(slug.clone());
+            (mapping, slug)
+        })
+        .collect()
+}
+
+fn hot_switch_mapping_for_catalog_slug<'a>(
+    settings: &'a BackendSettings,
+    requested_model: &str,
+) -> Option<&'a HotSwitchModelMapping> {
+    hot_switch_catalog_routes(settings)
+        .into_iter()
+        .find(|(_, slug)| slug == requested_model)
+        .map(|(mapping, _)| mapping)
+        .or_else(|| {
+            // 1.3.14 used `alias@relay_id`. Keep accepting it for existing
+            // conversations while new catalogs use renderer-safe slugs.
+            settings.hot_switch_model_mappings.iter().find(|mapping| {
+                settings
+                    .hot_switch_model_mappings
+                    .iter()
+                    .filter(|candidate| candidate.model == mapping.model)
+                    .count()
+                    > 1
+                    && requested_model == format!("{}@{}", mapping.model, mapping.relay_id)
+            })
+        })
+}
+
+fn duplicate_catalog_slug(mapping: &HotSwitchModelMapping) -> String {
+    format!(
+        "{}--cc-{}",
+        catalog_slug_component(&mapping.model, "model"),
+        catalog_slug_component(&mapping.relay_id, "provider")
+    )
+}
+
+fn catalog_slug_component(value: &str, fallback: &str) -> String {
+    let mut result = String::new();
+    let mut separator_pending = false;
+
+    for character in value.trim().chars() {
+        if character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.') {
+            if separator_pending && !result.is_empty() && !result.ends_with('-') {
+                result.push('-');
+            }
+            result.push(character.to_ascii_lowercase());
+            separator_pending = false;
+        } else {
+            separator_pending = true;
+        }
+    }
+
+    let result = result.trim_matches(['-', '_', '.']);
+    if result.is_empty() {
+        fallback.to_string()
+    } else {
+        result.to_string()
+    }
 }
 
 fn eligible_profiles(settings: &BackendSettings) -> Vec<RelayProfile> {
@@ -457,15 +560,18 @@ mod tests {
             ],
         );
 
-        assert_eq!(scan.mappings.len(), 3);
+        assert_eq!(scan.mappings.len(), 4);
         assert_eq!(scan.conflict_count, 1);
         let shared = scan
             .mappings
             .iter()
-            .find(|mapping| mapping.model == "shared")
-            .unwrap();
-        assert_eq!(shared.relay_id, "a");
-        assert_eq!(shared.candidate_relay_ids, vec!["a", "b"]);
+            .filter(|mapping| mapping.model == "shared")
+            .collect::<Vec<_>>();
+        assert_eq!(shared.len(), 2);
+        assert_eq!(shared[0].relay_id, "a");
+        assert_eq!(shared[1].relay_id, "b");
+        assert_eq!(shared[0].candidate_relay_ids, vec!["a", "b"]);
+        assert_eq!(shared[1].candidate_relay_ids, vec!["a", "b"]);
     }
 
     #[test]
@@ -501,7 +607,13 @@ mod tests {
             ],
         );
 
-        assert_eq!(scan.mappings[0].relay_id, "b");
+        let shared_b = scan
+            .mappings
+            .iter()
+            .find(|mapping| mapping.relay_id == "b")
+            .unwrap();
+        assert_eq!(shared_b.model, "shared");
+        assert_eq!(shared_b.candidate_relay_ids, vec!["a", "b"]);
     }
 
     #[test]
@@ -589,11 +701,19 @@ mod tests {
     }
 
     #[test]
-    fn auto_model_is_exposed_without_regular_mappings_and_becomes_default() {
+    fn auto_model_is_the_only_exposed_model_and_becomes_default() {
         let settings = BackendSettings {
             hot_switch_enabled: true,
+            hot_switch_model_routing_enabled: true,
             hot_switch_auto_model_enabled: true,
             relay_profiles: vec![profile("a", "Provider A")],
+            hot_switch_model_mappings: vec![HotSwitchModelMapping {
+                model: "regular-model".to_string(),
+                upstream_model: "real-model".to_string(),
+                relay_id: "a".to_string(),
+                candidate_relay_ids: vec!["a".to_string()],
+                ..HotSwitchModelMapping::default()
+            }],
             ..BackendSettings::default()
         };
 
@@ -603,6 +723,7 @@ mod tests {
         );
 
         let payload = hot_switch_models_api_payload(&settings, false).unwrap();
+        assert_eq!(payload["data"].as_array().map(Vec::len), Some(1));
         assert_eq!(payload["data"][0]["id"], HOT_SWITCH_AUTO_MODEL_ID);
         assert_eq!(payload["data"][0]["owned_by"], "Codex Compass");
         assert_eq!(
@@ -611,11 +732,27 @@ mod tests {
         );
 
         let catalog = hot_switch_models_api_payload(&settings, true).unwrap();
+        assert_eq!(catalog["models"].as_array().map(Vec::len), Some(1));
         assert_eq!(catalog["models"][0]["slug"], HOT_SWITCH_AUTO_MODEL_ID);
         assert_eq!(
             catalog["models"][0]["display_name"],
             HOT_SWITCH_AUTO_MODEL_DISPLAY_NAME
         );
+    }
+
+    #[test]
+    fn resolver_rejects_unmapped_models_when_automatic_routing_is_enabled() {
+        let settings = BackendSettings {
+            hot_switch_enabled: true,
+            hot_switch_model_routing_enabled: true,
+            hot_switch_relay_id: "a".to_string(),
+            hot_switch_model: "legacy-fallback".to_string(),
+            relay_profiles: vec![profile("a", "Provider A")],
+            ..BackendSettings::default()
+        };
+
+        let error = resolve_hot_switch_route(&settings, "stale-model").unwrap_err();
+        assert!(error.to_string().contains("没有可用映射"));
     }
 
     #[test]
@@ -655,5 +792,62 @@ mod tests {
                 .as_array()
                 .is_some_and(|levels| levels.iter().any(|level| level["effort"] == "max"))
         );
+    }
+
+    #[test]
+    fn duplicate_aliases_from_different_providers_get_distinct_catalog_slugs() {
+        let settings = BackendSettings {
+            hot_switch_enabled: true,
+            hot_switch_model_routing_enabled: true,
+            hot_switch_relay_id: "a".to_string(),
+            hot_switch_model: "gpt-5".to_string(),
+            relay_profiles: vec![profile("a", "Provider A"), profile("b", "Provider B")],
+            hot_switch_model_mappings: vec![
+                HotSwitchModelMapping {
+                    model: "gpt-5".to_string(),
+                    upstream_model: "gpt-5".to_string(),
+                    relay_id: "a".to_string(),
+                    candidate_relay_ids: vec!["a".to_string(), "b".to_string()],
+                    ..HotSwitchModelMapping::default()
+                },
+                HotSwitchModelMapping {
+                    model: "gpt-5".to_string(),
+                    upstream_model: "gpt-5".to_string(),
+                    relay_id: "b".to_string(),
+                    candidate_relay_ids: vec!["a".to_string(), "b".to_string()],
+                    ..HotSwitchModelMapping::default()
+                },
+            ],
+            ..BackendSettings::default()
+        };
+
+        let payload = hot_switch_models_api_payload(&settings, false).unwrap();
+        let data = payload["data"].as_array().unwrap();
+        assert_eq!(data.len(), 2);
+        assert_eq!(data[0]["id"], "gpt-5--cc-a");
+        assert_eq!(data[0]["display_name"], "gpt-5 · Provider A");
+        assert_eq!(data[1]["id"], "gpt-5--cc-b");
+        assert_eq!(data[1]["display_name"], "gpt-5 · Provider B");
+        assert_eq!(
+            hot_switch_default_model(&settings).as_deref(),
+            Some("gpt-5--cc-a")
+        );
+
+        let route_a = resolve_hot_switch_route(&settings, "gpt-5--cc-a")
+            .unwrap()
+            .unwrap();
+        let route_b = resolve_hot_switch_route(&settings, "gpt-5--cc-b")
+            .unwrap()
+            .unwrap();
+        assert_eq!(route_a.relay.id, "a");
+        assert_eq!(route_b.relay.id, "b");
+        assert_eq!(route_a.upstream_model, "gpt-5");
+        assert_eq!(route_b.upstream_model, "gpt-5");
+
+        let legacy_route = resolve_hot_switch_route(&settings, "gpt-5@b")
+            .unwrap()
+            .unwrap();
+        assert_eq!(legacy_route.relay.id, "b");
+        assert_eq!(legacy_route.upstream_model, "gpt-5");
     }
 }

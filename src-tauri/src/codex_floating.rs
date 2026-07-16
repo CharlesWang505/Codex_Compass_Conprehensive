@@ -1,21 +1,30 @@
 use codex_plus_core::settings::{FloatingSwitchPosition, SettingsStore};
 use serde_json::json;
 use tauri::{
-    App, AppHandle, Manager, PhysicalPosition, Position, WebviewUrl, WebviewWindowBuilder,
+    App, AppHandle, Emitter, Manager, PhysicalPosition, Position, WebviewUrl, WebviewWindowBuilder,
+    menu::{Menu, MenuItem},
 };
 
-const BALL_SIZE: f64 = 58.0;
-const PANEL_WIDTH: f64 = 340.0;
-const PANEL_HEIGHT: f64 = 390.0;
+const BALL_SIZE: f64 = 66.0;
+const PANEL_WIDTH: f64 = 360.0;
+const PANEL_HEIGHT: f64 = 460.0;
+const FLOATING_OPEN_MAIN_ID: &str = "floating-open-main";
+const FLOATING_CLOSE_ID: &str = "floating-close";
+const FLOATING_CHANGED_EVENT: &str = "floating-switch-changed";
 
 pub fn setup(app: &mut App) -> tauri::Result<()> {
-    let settings = SettingsStore::default().load().unwrap_or_default();
+    let store = SettingsStore::default();
+    let mut settings = store.load().unwrap_or_default();
+    if settings.floating_switch_enabled {
+        settings.floating_switch_enabled = false;
+        let _ = store.save(&settings);
+    }
     let position = settings
         .floating_switch_position
         .unwrap_or(FloatingSwitchPosition { x: 24, y: 240 });
 
     if app.get_webview_window("floating-ball").is_none() {
-        WebviewWindowBuilder::new(
+        let ball = WebviewWindowBuilder::new(
             app,
             "floating-ball",
             WebviewUrl::App("index.html?surface=floating".into()),
@@ -29,8 +38,18 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
         .always_on_top(true)
         .skip_taskbar(true)
         .shadow(false)
-        .visible(settings.floating_switch_enabled)
+        .visible(false)
         .build()?;
+        let app_handle = app.handle().clone();
+        ball.on_menu_event(move |_window, event| match event.id.as_ref() {
+            FLOATING_OPEN_MAIN_ID => {
+                let _ = floating_show_main(app_handle.clone());
+            }
+            FLOATING_CLOSE_ID => {
+                let _ = set_floating_enabled(&app_handle, false);
+            }
+            _ => {}
+        });
     }
 
     if app.get_webview_window("floating-panel").is_none() {
@@ -102,13 +121,37 @@ fn apply_floating_visibility(app: &AppHandle, enabled: bool) -> Result<(), Strin
     Ok(())
 }
 
-#[tauri::command]
-pub fn floating_set_enabled(app: AppHandle, enabled: bool) -> Result<bool, String> {
+fn set_floating_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
     SettingsStore::default()
         .update(json!({ "floatingSwitchEnabled": enabled }))
         .map_err(|error| error.to_string())?;
-    apply_floating_visibility(&app, enabled)?;
+    apply_floating_visibility(app, enabled)?;
+    let _ = app.emit(FLOATING_CHANGED_EVENT, enabled);
     Ok(enabled)
+}
+
+#[tauri::command]
+pub fn floating_set_enabled(app: AppHandle, enabled: bool) -> Result<bool, String> {
+    set_floating_enabled(&app, enabled)
+}
+
+#[tauri::command]
+pub fn floating_show_context_menu(app: AppHandle) -> Result<(), String> {
+    let open_main = MenuItem::with_id(
+        &app,
+        FLOATING_OPEN_MAIN_ID,
+        "打开 Codex Compass",
+        true,
+        None::<&str>,
+    )
+    .map_err(|error| error.to_string())?;
+    let close = MenuItem::with_id(&app, FLOATING_CLOSE_ID, "关闭悬浮球", true, None::<&str>)
+        .map_err(|error| error.to_string())?;
+    let menu = Menu::with_items(&app, &[&open_main, &close]).map_err(|error| error.to_string())?;
+    let ball = app
+        .get_webview_window("floating-ball")
+        .ok_or_else(|| "悬浮球窗口不存在".to_string())?;
+    ball.popup_menu(&menu).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -134,9 +177,33 @@ pub fn floating_toggle_panel(app: AppHandle) -> Result<(), String> {
         return Ok(());
     }
     if let Some(ball) = app.get_webview_window("floating-ball") {
-        if let (Ok(position), Ok(size)) = (ball.outer_position(), ball.outer_size()) {
-            let x = position.x + size.width as i32 + 8;
-            let y = (position.y - ((PANEL_HEIGHT as i32 - size.height as i32) / 2)).max(0);
+        if let (Ok(position), Ok(size), Ok(panel_size)) =
+            (ball.outer_position(), ball.outer_size(), panel.outer_size())
+        {
+            let preferred_right = position.x + size.width as i32 + 8;
+            let preferred_left = position.x - panel_size.width as i32 - 8;
+            let centered_y = position.y + (size.height as i32 - panel_size.height as i32) / 2;
+            let (mut x, mut y) = (preferred_right, centered_y.max(0));
+
+            if let Ok(Some(monitor)) = ball.current_monitor() {
+                let monitor_position = monitor.position();
+                let monitor_size = monitor.size();
+                let max_x = (monitor_position.x + monitor_size.width as i32
+                    - panel_size.width as i32)
+                    .max(monitor_position.x);
+                let max_y = (monitor_position.y + monitor_size.height as i32
+                    - panel_size.height as i32)
+                    .max(monitor_position.y);
+                x = if preferred_right <= max_x {
+                    preferred_right
+                } else if preferred_left >= monitor_position.x {
+                    preferred_left
+                } else {
+                    preferred_right.clamp(monitor_position.x, max_x)
+                };
+                y = centered_y.clamp(monitor_position.y, max_y);
+            }
+
             let _ = panel.set_position(Position::Physical(PhysicalPosition::new(x, y)));
         }
     }

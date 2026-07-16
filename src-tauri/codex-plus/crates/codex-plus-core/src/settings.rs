@@ -1329,16 +1329,13 @@ fn normalize_hot_switch_model_mappings(settings: &mut BackendSettings) {
         })
         .map(|profile| profile.id.as_str())
         .collect::<HashSet<_>>();
-    let mut seen_models = HashSet::new();
+    let mut seen_routes = HashSet::new();
     let mut normalized = Vec::new();
     for mut mapping in std::mem::take(&mut settings.hot_switch_model_mappings) {
         mapping.model = mapping.model.trim().to_string();
         mapping.upstream_model = mapping.upstream_model.trim().to_string();
         mapping.relay_id = mapping.relay_id.trim().to_string();
-        if mapping.model.is_empty()
-            || mapping.upstream_model.is_empty()
-            || !seen_models.insert(mapping.model.clone())
-        {
+        if mapping.model.is_empty() || mapping.upstream_model.is_empty() {
             continue;
         }
         let mut seen_candidates = HashSet::new();
@@ -1366,6 +1363,9 @@ fn normalize_hot_switch_model_mappings(settings: &mut BackendSettings) {
                 .unwrap_or_default();
         }
         if mapping.relay_id.is_empty() {
+            continue;
+        }
+        if !seen_routes.insert((mapping.model.clone(), mapping.relay_id.clone())) {
             continue;
         }
         normalized.push(mapping);
@@ -1424,7 +1424,7 @@ fn normalize_text_config(contents: String) -> String {
     }
 }
 
-pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> anyhow::Result<()> {
+pub fn atomic_write(path: &Path, bytes: &[u8]) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .with_context(|| format!("failed to create directory {}", parent.display()))?;
@@ -1433,7 +1433,7 @@ pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> anyhow::Result<()> {
     let temp_path = temp_path_for(path);
     fs::write(&temp_path, bytes)
         .with_context(|| format!("failed to write temp file {}", temp_path.display()))?;
-    if let Err(error) = fs::rename(&temp_path, path) {
+    if let Err(error) = replace_file(&temp_path, path) {
         let _ = fs::remove_file(&temp_path);
         return Err(error).with_context(|| {
             format!(
@@ -1442,6 +1442,40 @@ pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> anyhow::Result<()> {
                 temp_path.display()
             )
         });
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn replace_file(source: &Path, target: &Path) -> anyhow::Result<()> {
+    fs::rename(source, target)?;
+    Ok(())
+}
+
+#[cfg(windows)]
+fn replace_file(source: &Path, target: &Path) -> anyhow::Result<()> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows::Win32::Storage::FileSystem::{
+        MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH, MoveFileExW,
+    };
+    use windows::core::PCWSTR;
+
+    let source = source
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect::<Vec<_>>();
+    let target = target
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect::<Vec<_>>();
+    unsafe {
+        MoveFileExW(
+            PCWSTR(source.as_ptr()),
+            PCWSTR(target.as_ptr()),
+            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
+        )?;
     }
     Ok(())
 }
@@ -1472,6 +1506,19 @@ mod tests {
         ));
         std::fs::create_dir_all(&path).unwrap();
         path
+    }
+
+    #[test]
+    fn atomic_write_replaces_existing_file_and_removes_temp_file() {
+        let dir = temp_dir();
+        let path = dir.join("settings.json");
+        std::fs::write(&path, b"old").unwrap();
+
+        atomic_write(&path, b"new").unwrap();
+
+        assert_eq!(std::fs::read(&path).unwrap(), b"new");
+        assert!(!dir.join("settings.json.tmp").exists());
+        std::fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
@@ -1523,6 +1570,36 @@ mod tests {
         assert!(settings.hot_switch_model_routing_enabled);
         assert!(settings.hot_switch_auto_model_enabled);
         assert!(settings.hot_switch_model_mappings.is_empty());
+    }
+
+    #[test]
+    fn model_mapping_normalization_keeps_duplicate_aliases_for_different_providers() {
+        let relay = |id: &str| RelayProfile {
+            id: id.to_string(),
+            name: id.to_string(),
+            base_url: format!("https://{id}.example/v1"),
+            upstream_base_url: format!("https://{id}.example/v1"),
+            api_key: format!("sk-{id}"),
+            relay_mode: RelayMode::PureApi,
+            ..RelayProfile::default()
+        };
+        let mapping = |relay_id: &str| HotSwitchModelMapping {
+            model: "gpt-5".to_string(),
+            upstream_model: "gpt-5".to_string(),
+            relay_id: relay_id.to_string(),
+            candidate_relay_ids: vec!["relay-a".to_string(), "relay-b".to_string()],
+            ..HotSwitchModelMapping::default()
+        };
+        let settings = normalize_settings_config_sections(BackendSettings {
+            relay_profiles: vec![relay("relay-a"), relay("relay-b")],
+            hot_switch_model_routing_enabled: true,
+            hot_switch_model_mappings: vec![mapping("relay-a"), mapping("relay-b")],
+            ..BackendSettings::default()
+        });
+
+        assert_eq!(settings.hot_switch_model_mappings.len(), 2);
+        assert_eq!(settings.hot_switch_model_mappings[0].relay_id, "relay-a");
+        assert_eq!(settings.hot_switch_model_mappings[1].relay_id, "relay-b");
     }
 
     #[test]

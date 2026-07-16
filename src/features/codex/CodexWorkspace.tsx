@@ -19,11 +19,13 @@ import {
   Zap,
 } from 'lucide-react'
 import { isTauriRuntime } from '../../lib/desktop'
+import { listen } from '@tauri-apps/api/event'
 import { callCodex, commandSucceeded } from './api'
 import { ToolsPluginsPage } from './context/ToolsPluginsPage'
 import type { ContextDraft } from './context/contextTypes'
 import { HotSwitchPage } from './hotSwitch/HotSwitchPage'
 import { AggregateRelayEditor } from './providers/AggregateRelayEditor'
+import { removeRelayProfileFromSettings } from './providers/providerSettings'
 import { ScriptMarketPage } from './scripts/ScriptMarketPage'
 import { SessionsPage } from './sessions/SessionsPage'
 import {
@@ -284,6 +286,22 @@ export function CodexWorkspace({ section }: Props) {
     setSettings((current) => current ? { ...current, ...patch } : current)
   }, [])
 
+  useEffect(() => {
+    if (!tauri) return
+    let disposed = false
+    let unlisten: (() => void) | undefined
+    void listen<boolean>('floating-switch-changed', ({ payload }) => {
+      patchSettings({ floatingSwitchEnabled: payload })
+    }).then((cleanup) => {
+      if (disposed) cleanup()
+      else unlisten = cleanup
+    })
+    return () => {
+      disposed = true
+      unlisten?.()
+    }
+  }, [patchSettings, tauri])
+
   const setFloatingEnabled = useCallback(async (enabled: boolean) => {
     const result = await run('floating-enabled', () => callCodex<boolean>('floating_set_enabled', { enabled }))
     if (result === null) return
@@ -331,20 +349,25 @@ export function CodexWorkspace({ section }: Props) {
     setDoctor(null)
   }, [])
 
-  const removeProfile = useCallback(() => {
-    if (!settings || !selectedProfile || settings.relayProfiles.length <= 1) return
-    const nextProfiles = settings.relayProfiles.filter((profile) => profile.id !== selectedProfile.id)
-    const nextId = nextProfiles[0]?.id ?? ''
-    setSettings({
-      ...settings,
-      relayProfiles: nextProfiles,
-      aggregateRelayProfiles: settings.aggregateRelayProfiles.filter((profile) => profile.id !== selectedProfile.id),
-      activeRelayId: settings.activeRelayId === selectedProfile.id ? nextId : settings.activeRelayId,
-      hotSwitchRelayId: settings.hotSwitchRelayId === selectedProfile.id ? nextId : settings.hotSwitchRelayId,
-      activeAggregateRelayId: settings.activeAggregateRelayId === selectedProfile.id ? '' : settings.activeAggregateRelayId,
-    })
-    setSelectedProfileId(nextId)
-  }, [selectedProfile, settings])
+  const removeProfile = useCallback(async () => {
+    if (!settings || !selectedProfile) return
+    const next = removeRelayProfileFromSettings(settings, selectedProfile.id)
+    if (!next) return
+
+    const removedName = selectedProfile.name
+    const nextId = next.relayProfiles[0]?.id ?? ''
+    const result = await saveSettings(next, false)
+    if (!result || !commandSucceeded(result)) return
+
+    setSelectedProfileId(
+      result.settings.relayProfiles.some((profile) => profile.id === nextId)
+        ? nextId
+        : result.settings.relayProfiles[0]?.id ?? '',
+    )
+    setProfileModels([])
+    setDoctor(null)
+    setNotice({ tone: 'ok', text: `供应商「${removedName}」已删除并保存。` })
+  }, [saveSettings, selectedProfile, settings])
 
   const saveProfiles = useCallback(async () => {
     if (settings) await saveSettings(settings)
@@ -534,8 +557,27 @@ export function CodexWorkspace({ section }: Props) {
 
   const setAutoModelEnabled = useCallback(async (enabled: boolean) => {
     if (!settings) return
-    if (enabled && !settings.hotSwitchModel.trim()) {
-      setNotice({ tone: 'warning', text: '请先在页面顶部选择回退模型，作为自动模型当前使用的实际模型。' })
+
+    const currentProfile = settings.relayProfiles.find((profile) => profile.id === settings.hotSwitchRelayId && profile.relayMode !== 'aggregate')
+    const preferredMapping = mappings.find((mapping) => mapping.relayId === currentProfile?.id && mapping.upstreamModel.trim())
+      ?? mappings.find((mapping) => mapping.upstreamModel.trim())
+    const targetRelayId = currentProfile?.id
+      ?? preferredMapping?.relayId
+      ?? settings.relayProfiles.find((profile) => profile.relayMode !== 'aggregate')?.id
+      ?? ''
+    const targetProfile = settings.relayProfiles.find((profile) => profile.id === targetRelayId)
+    const targetModels = targetProfile?.modelList
+      .split(/[\r\n,]/)
+      .map((model) => model.trim())
+      .filter(Boolean) ?? []
+    const targetModel = settings.hotSwitchModel.trim()
+      || (preferredMapping?.relayId === targetRelayId ? preferredMapping.upstreamModel.trim() : '')
+      || targetProfile?.model?.trim()
+      || targetModels[0]
+      || ''
+
+    if (enabled && (!targetRelayId || !targetModel)) {
+      setNotice({ tone: 'warning', text: '请先为至少一个供应商获取模型，自动模型需要一个初始供应商和实际模型。' })
       return
     }
 
@@ -555,8 +597,8 @@ export function CodexWorkspace({ section }: Props) {
         hot = await callCodex<HotSwitchResult>('set_hot_switch', {
           request: {
             enabled: true,
-            relayId: saved.settings.hotSwitchRelayId,
-            model: saved.settings.hotSwitchModel,
+            relayId: targetRelayId,
+            model: targetModel,
           },
         })
         if (!commandSucceeded(hot)) return { saved, hot, restart: null }
@@ -805,7 +847,7 @@ export function CodexWorkspace({ section }: Props) {
             {selectedProfile && settings ? (
               <>
                 {settings.hotSwitchEnabled ? <div className="codex-lock-banner"><ShieldCheck size={16} />8787 热切换已开启，供应商配置已锁定；关闭网关后才能保存修改。</div> : null}
-                <Panel title={selectedProfile.name} icon={<KeyRound size={18} />} action={<div className="codex-inline-actions"><button type="button" className="danger" disabled={settings.hotSwitchEnabled || settings.relayProfiles.length <= 1} onClick={removeProfile}><Trash2 size={14} />删除</button></div>}>
+                <Panel title={selectedProfile.name} icon={<KeyRound size={18} />} action={<div className="codex-inline-actions"><button type="button" className="danger" disabled={Boolean(busy) || settings.hotSwitchEnabled || settings.relayProfiles.length <= 1} onClick={() => void removeProfile()}><Trash2 size={14} />删除</button></div>}>
                   <div className="codex-provider-guide">
                     <strong>三步完成配置</strong>
                     <ol><li>填写 Base URL 和 API Key</li><li>点击“获取模型”并选择默认模型</li><li>点击“保存并应用到 Codex”</li></ol>

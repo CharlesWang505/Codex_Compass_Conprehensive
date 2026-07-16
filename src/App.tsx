@@ -30,6 +30,7 @@ import {
   Server,
   Settings,
   ShieldCheck,
+  Smartphone,
   Square,
   SlidersHorizontal,
   Sun,
@@ -89,6 +90,7 @@ const initialSites = loadSites()
 const initialSiteId = loadSelectedSiteId(initialSites) ?? initialSites[0].id
 const ProxyLatencyPanel = lazy(() => import('./features/proxyLatency/ProxyLatencyPanel').then((module) => ({ default: module.ProxyLatencyPanel })))
 const CodexWorkspace = lazy(() => import('./features/codex/CodexWorkspace').then((module) => ({ default: module.CodexWorkspace })))
+const RemoteControlPage = lazy(() => import('./features/remote-control/RemoteControlPage').then((module) => ({ default: module.RemoteControlPage })))
 const palette = ['#2f7df6', '#11b6a0', '#f7b723', '#8b5cf6', '#f4779a', '#35c4d6', '#f4cc82']
 const MODEL_CHART_MAX_ITEMS = 8
 const MODEL_CHART_MIN_SHARE = 0.01
@@ -98,6 +100,7 @@ const navItems: Array<[string, LucideIcon]> = [
   ['供应商配置', Server],
   ['热切换', Zap],
   ['会话管理', MessageCircle],
+  ['手机远控', Smartphone],
   ['工具与插件', Network],
   ['Codex增强', ShieldCheck],
   ['脚本市场', Download],
@@ -1871,9 +1874,10 @@ function App() {
   const isModels = activeSection === '模型'
   const isAvailability = activeSection === '可用性'
   const isProxyLatency = activeSection === '代理测速'
+  const isRemoteControl = activeSection === '手机远控'
   const isSettings = activeSection === '设置'
   const isCodexSection = CODEX_SECTIONS.has(activeSection as CodexSection)
-  const isCodexOnlySection = isCodexSection && !isOverview && !isSettings
+  const isCodexOnlySection = (isCodexSection && !isOverview && !isSettings) || isRemoteControl
   const showAccount = isOverview || isAccount
   const showSummary = isOverview || isAccount
   const showTrend = isOverview || isAccount || isModels
@@ -2088,7 +2092,7 @@ function App() {
           </section>
         )}
 
-        {!isOverview && (
+        {!isOverview && !isRemoteControl && (
           <section className="section-titlebar">
             <div>
               <h1>{activeSection}</h1>
@@ -2130,6 +2134,8 @@ function App() {
         )}
 
         {isProxyLatency && <Suspense fallback={<div className="lazy-panel-placeholder">正在加载代理测速…</div>}><ProxyLatencyPanel sites={sites} selectedSite={selectedSite} /></Suspense>}
+
+        {isRemoteControl && <Suspense fallback={<div className="lazy-panel-placeholder">正在加载手机远控…</div>}><RemoteControlPage /></Suspense>}
 
         {isCodexSection && !isOverview && <Suspense fallback={<div className="lazy-panel-placeholder">正在加载 Codex 管理模块…</div>}><CodexWorkspace section={activeSection as CodexSection} /></Suspense>}
 

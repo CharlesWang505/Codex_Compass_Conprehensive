@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
-import { getCurrentWindow, PhysicalPosition } from '@tauri-apps/api/window'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { ExternalLink, Power, Radio, Save, Zap } from 'lucide-react'
 import { useTheme } from '../../lib/theme'
 import { callCodex } from './api'
@@ -16,33 +16,55 @@ export function FloatingSurface({ surface }: Props) {
 }
 
 function FloatingBall() {
-  const drag = useRef<{ screenX: number; screenY: number; x: number; y: number; moved: boolean } | null>(null)
+  const moved = useRef(false)
+  const pointer = useRef<{ x: number; y: number; dragging: boolean } | null>(null)
+  const saveTimer = useRef<number | null>(null)
 
-  const onPointerDown = useCallback(async (event: React.PointerEvent<HTMLButtonElement>) => {
+  useEffect(() => {
+    let disposed = false
+    let unlisten: (() => void) | undefined
+    void getCurrentWindow().onMoved(({ payload }) => {
+      moved.current = true
+      if (saveTimer.current !== null) window.clearTimeout(saveTimer.current)
+      saveTimer.current = window.setTimeout(() => {
+        void invoke('floating_save_position', { x: payload.x, y: payload.y })
+      }, 180)
+    }).then((cleanup) => {
+      if (disposed) cleanup()
+      else unlisten = cleanup
+    }).catch(() => undefined)
+    return () => {
+      disposed = true
+      unlisten?.()
+      if (saveTimer.current !== null) window.clearTimeout(saveTimer.current)
+    }
+  }, [])
+
+  const onPointerDown = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return
-    const position = await getCurrentWindow().outerPosition()
-    drag.current = { screenX: event.screenX, screenY: event.screenY, x: position.x, y: position.y, moved: false }
-    event.currentTarget.setPointerCapture(event.pointerId)
+    moved.current = false
+    pointer.current = { x: event.screenX, y: event.screenY, dragging: false }
   }, [])
 
   const onPointerMove = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
-    const current = drag.current
-    if (!current) return
-    const dx = event.screenX - current.screenX
-    const dy = event.screenY - current.screenY
-    if (Math.abs(dx) + Math.abs(dy) > 4) current.moved = true
-    if (current.moved) void getCurrentWindow().setPosition(new PhysicalPosition(current.x + dx, current.y + dy))
+    const current = pointer.current
+    if (!current || current.dragging) return
+    if (Math.abs(event.screenX - current.x) + Math.abs(event.screenY - current.y) <= 4) return
+    current.dragging = true
+    moved.current = true
+    void getCurrentWindow().startDragging().catch(() => undefined)
   }, [])
 
-  const onPointerUp = useCallback(async () => {
-    const current = drag.current
-    drag.current = null
-    if (!current?.moved) {
-      await invoke('floating_toggle_panel')
+  const finishPointer = useCallback(() => {
+    pointer.current = null
+  }, [])
+
+  const onClick = useCallback(() => {
+    if (moved.current) {
+      moved.current = false
       return
     }
-    const position = await getCurrentWindow().outerPosition()
-    await invoke('floating_save_position', { x: position.x, y: position.y })
+    void invoke('floating_toggle_panel')
   }, [])
 
   return (
@@ -50,11 +72,16 @@ function FloatingBall() {
       className="floating-ball"
       type="button"
       aria-label="打开热切换面板"
-      title="单击切换面板，拖动调整位置，右键打开主程序"
-      onPointerDown={(event) => void onPointerDown(event)}
+      title="单击切换面板，拖动调整位置，右键打开菜单"
+      onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={() => void onPointerUp()}
-      onContextMenu={(event) => { event.preventDefault(); void invoke('floating_show_main') }}
+      onPointerUp={finishPointer}
+      onPointerCancel={finishPointer}
+      onClick={onClick}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        void invoke('floating_show_context_menu')
+      }}
     >
       <Zap size={24} />
       <span />
@@ -72,6 +99,7 @@ function FloatingPanel() {
   const [message, setMessage] = useState('')
   const automaticRouting = Boolean(settings?.hotSwitchModelRoutingEnabled)
   const autoModelEnabled = Boolean(settings?.hotSwitchAutoModelEnabled)
+  const showTargetControls = autoModelEnabled || !automaticRouting
   const selectableModels = useMemo(() => {
     const profile = settings?.relayProfiles.find((candidate) => candidate.id === relayId)
     const configuredModels = profile?.modelList
@@ -171,39 +199,43 @@ function FloatingPanel() {
       {autoModelEnabled ? (
         <div className="floating-routing-hint">在 Codex 中选择“Codex Compass 自动模型”后，这里的供应商、模型和 Reasoning 就是请求实际使用的目标；修改后下一次请求立即生效。</div>
       ) : automaticRouting ? (
-        <div className="floating-routing-hint">自动路由已开启：Codex 选择器决定正常路由；这里可修改未匹配请求的回退目标。</div>
+        <div className="floating-routing-hint">普通模型由 Codex 模型选择器和已保存映射决定。悬浮面板不再提供全局回退目标；需要在这里切换供应商和模型时，请先在主程序中添加自动模型。</div>
       ) : null}
-      <label><span>{autoModelEnabled ? '自动模型供应商 / Key' : automaticRouting ? '回退供应商 / Key' : '供应商 / Key'}</span><select value={relayId} disabled={busy} onChange={(event) => setRelayId(event.target.value)}>{settings?.relayProfiles.filter((profile) => profile.relayMode !== 'aggregate').map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
-      <label>
-        <span>{autoModelEnabled ? '自动模型实际使用' : automaticRouting ? '回退模型' : '模型'}</span>
-        <div className="floating-model-picker">
-          <input
-            value={model}
-            disabled={busy}
-            placeholder={selectableModels.length ? '也可以手动输入模型' : '请先在供应商配置中获取模型'}
-            onChange={(event) => setModel(event.target.value)}
-          />
-          <select
-            value={selectableModels.includes(model) ? model : ''}
-            disabled={busy || !selectableModels.length}
-            aria-label="选择已获取的模型"
-            title={selectableModels.length ? `选择已获取的模型（${selectableModels.length} 个）` : '当前供应商还没有已获取的模型'}
-            onChange={(event) => {
-              if (event.target.value) setModel(event.target.value)
-            }}
-          >
-            <option value="">{selectableModels.length ? `选择（${selectableModels.length}）` : '暂无模型'}</option>
-            {selectableModels.map((candidate) => <option key={candidate} value={candidate}>{candidate}</option>)}
-          </select>
-        </div>
-      </label>
-      <label><span>{autoModelEnabled ? '自动模型 Reasoning' : 'Reasoning'}</span><select value={reasoning} onChange={(event) => setReasoning(event.target.value)}><option value="auto">自动</option><option value="off">关闭</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></label>
-      <div className="floating-actions">
-        <button className="primary" type="button" disabled={busy} onClick={() => void apply()}><Save size={14} />{autoModelEnabled ? '应用自动模型' : automaticRouting ? '保存并开启' : '应用并开启'}</button>
+      {showTargetControls ? (
+        <>
+          <label><span>{autoModelEnabled ? '自动模型供应商 / Key' : '供应商 / Key'}</span><select value={relayId} disabled={busy} onChange={(event) => setRelayId(event.target.value)}>{settings?.relayProfiles.filter((profile) => profile.relayMode !== 'aggregate').map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
+          <label>
+            <span>{autoModelEnabled ? '自动模型实际使用' : '模型'}</span>
+            <div className="floating-model-picker">
+              <input
+                value={model}
+                disabled={busy}
+                placeholder={selectableModels.length ? '也可以手动输入模型' : '请先在供应商配置中获取模型'}
+                onChange={(event) => setModel(event.target.value)}
+              />
+              <select
+                value={selectableModels.includes(model) ? model : ''}
+                disabled={busy || !selectableModels.length}
+                aria-label="选择已获取的模型"
+                title={selectableModels.length ? `选择已获取的模型（${selectableModels.length} 个）` : '当前供应商还没有已获取的模型'}
+                onChange={(event) => {
+                  if (event.target.value) setModel(event.target.value)
+                }}
+              >
+                <option value="">{selectableModels.length ? `选择（${selectableModels.length}）` : '暂无模型'}</option>
+                {selectableModels.map((candidate) => <option key={candidate} value={candidate}>{candidate}</option>)}
+              </select>
+            </div>
+          </label>
+          <label><span>{autoModelEnabled ? '自动模型 Reasoning' : 'Reasoning'}</span><select value={reasoning} onChange={(event) => setReasoning(event.target.value)}><option value="auto">自动</option><option value="off">关闭</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="xhigh">xhigh</option></select></label>
+        </>
+      ) : null}
+      <div className={showTargetControls ? 'floating-actions' : 'floating-actions solo'}>
+        {showTargetControls ? <button className="primary" type="button" disabled={busy} onClick={() => void apply()}><Save size={14} />{autoModelEnabled ? '应用自动模型' : '应用并开启'}</button> : null}
         <button type="button" disabled={busy} onClick={() => void toggleGateway()}><Power size={14} />{hot?.enabled ? '关闭' : '开启'}</button>
       </div>
       <button className="floating-open-main" type="button" onClick={() => void invoke('floating_show_main')}><ExternalLink size={14} />打开主程序</button>
-      <p>{message}</p>
+      {message ? <p>{message}</p> : null}
     </main>
   )
 }

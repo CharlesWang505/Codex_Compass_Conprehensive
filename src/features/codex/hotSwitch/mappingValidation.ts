@@ -10,7 +10,7 @@ export type MappingValidation = {
 
 export function validateMappings(mappings: HotSwitchModelMapping[], profiles: RelayProfile[]): MappingValidation {
   const providerIds = new Set(profiles.filter((profile) => profile.relayMode !== 'aggregate').map((profile) => profile.id))
-  const aliases = new Map<string, number[]>()
+  const routes = new Map<string, number[]>()
   const rowErrors: Record<number, string[]> = {}
 
   const addError = (index: number, message: string) => {
@@ -25,7 +25,10 @@ export function validateMappings(mappings: HotSwitchModelMapping[], profiles: Re
     if (!upstream) addError(index, '上游模型不能为空。')
     if (!mapping.relayId || !providerIds.has(mapping.relayId)) addError(index, '首选供应商不存在或已失效。')
 
-    if (alias) aliases.set(alias, [...(aliases.get(alias) ?? []), index])
+    if (alias && mapping.relayId) {
+      const routeKey = `${alias}\u0000${mapping.relayId}`
+      routes.set(routeKey, [...(routes.get(routeKey) ?? []), index])
+    }
 
     const fallbacks = mapping.fallbackRelayIds ?? []
     const seen = new Set<string>()
@@ -37,9 +40,10 @@ export function validateMappings(mappings: HotSwitchModelMapping[], profiles: Re
     }
   })
 
-  for (const [alias, indexes] of aliases) {
+  for (const [routeKey, indexes] of routes) {
     if (indexes.length < 2) continue
-    indexes.forEach((index) => addError(index, `模型别名“${alias}”重复。`))
+    const alias = routeKey.split('\u0000', 1)[0]
+    indexes.forEach((index) => addError(index, `模型别名“${alias}”在同一首选供应商中重复。`))
   }
 
   const messages = Object.entries(rowErrors).flatMap(([index, errors]) => errors.map((error) => `第 ${Number(index) + 1} 条：${error}`))

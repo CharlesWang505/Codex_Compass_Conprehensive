@@ -213,6 +213,9 @@ export type LocalSessionsResult = CommandResult<{
   dbPath: string
   dbPaths: string[]
   sessions: LocalSession[]
+  offset: number
+  limit: number
+  hasMore: boolean
 }>
 
 export type CodexContextEntry = {

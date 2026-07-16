@@ -11,6 +11,9 @@ use tauri::{App, AppHandle, CloseRequestApi, Emitter, Manager, Runtime, WebviewW
 
 const CLOSE_REQUEST_EVENT: &str = "app-close-requested";
 const TRAY_SHOW_ID: &str = "tray-show-main";
+const TRAY_REMOTE_OPEN_ID: &str = "tray-remote-open";
+const TRAY_REMOTE_PAUSE_ID: &str = "tray-remote-pause";
+const TRAY_REMOTE_RESUME_ID: &str = "tray-remote-resume";
 const TRAY_QUIT_ID: &str = "tray-quit-app";
 static PREFERENCES_LOCK: Mutex<()> = Mutex::new(());
 static FORCE_EXIT: AtomicBool = AtomicBool::new(false);
@@ -116,8 +119,33 @@ fn exit_application<R: Runtime>(app: &AppHandle<R>) {
 
 pub fn setup_tray(app: &mut App) -> tauri::Result<()> {
     let show_item = MenuItem::with_id(app, TRAY_SHOW_ID, "显示主窗口", true, None::<&str>)?;
+    let remote_open_item =
+        MenuItem::with_id(app, TRAY_REMOTE_OPEN_ID, "打开手机远控", true, None::<&str>)?;
+    let remote_pause_item = MenuItem::with_id(
+        app,
+        TRAY_REMOTE_PAUSE_ID,
+        "暂停手机远控",
+        true,
+        None::<&str>,
+    )?;
+    let remote_resume_item = MenuItem::with_id(
+        app,
+        TRAY_REMOTE_RESUME_ID,
+        "恢复手机远控",
+        true,
+        None::<&str>,
+    )?;
     let quit_item = MenuItem::with_id(app, TRAY_QUIT_ID, "退出软件", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+    let menu = Menu::with_items(
+        app,
+        &[
+            &show_item,
+            &remote_open_item,
+            &remote_pause_item,
+            &remote_resume_item,
+            &quit_item,
+        ],
+    )?;
 
     let mut builder = TrayIconBuilder::with_id("main-tray")
         .menu(&menu)
@@ -125,6 +153,20 @@ pub fn setup_tray(app: &mut App) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {
             TRAY_SHOW_ID => show_main_window(app),
+            TRAY_REMOTE_OPEN_ID => {
+                show_main_window(app);
+                let _ = app.emit("remote-control-open-requested", ());
+            }
+            TRAY_REMOTE_PAUSE_ID | TRAY_REMOTE_RESUME_ID => {
+                let paused = event.id.as_ref() == TRAY_REMOTE_PAUSE_ID;
+                let manager = app
+                    .state::<crate::remote_control::RemoteControlManager>()
+                    .inner()
+                    .clone();
+                tauri::async_runtime::spawn(async move {
+                    let _ = manager.set_paused(paused).await;
+                });
+            }
             TRAY_QUIT_ID => exit_application(app),
             _ => {}
         })

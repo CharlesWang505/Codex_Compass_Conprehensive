@@ -1,0 +1,35 @@
+[Unit]
+Description=Codex Compass encrypted relay and mobile web
+Documentation=https://github.com/CharlesWang505/Codex_Ultura
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=codex-relay
+Group=codex-relay
+WorkingDirectory=/opt/codex-compass-relay/current
+EnvironmentFile=/etc/codex-compass-relay/relay.env
+# The one-click installer replaces this example path with the verified Node binary.
+ExecStart=/usr/bin/node /opt/codex-compass-relay/current/index.mjs
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+UMask=0077
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

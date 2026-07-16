@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react'
+import { emit, listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type { ThemeMode } from '../types'
 
 const THEME_KEY = 'relay-meter-theme-v1'
+const THEME_CHANGED_EVENT = 'codex-compass-theme-changed'
+
+function isThemeMode(value: unknown): value is ThemeMode {
+  return value === 'light' || value === 'dark' || value === 'pink'
+}
+
+function isTauriRuntime() {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+}
 
 export function loadTheme(): ThemeMode {
   try {
     const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'light' || stored === 'dark' || stored === 'pink') {
+    if (isThemeMode(stored)) {
       return stored
     }
   } catch {
@@ -28,7 +38,41 @@ export function useTheme(): [ThemeMode, () => void] {
     }
   }, [theme])
 
-  const toggle = () => setTheme((prev) => (prev === 'dark' ? 'light' : prev === 'light' ? 'pink' : 'dark'))
+  useEffect(() => {
+    const syncFromStorage = (event: StorageEvent) => {
+      if (event.key === THEME_KEY && isThemeMode(event.newValue)) {
+        setTheme(event.newValue)
+      }
+    }
+    window.addEventListener('storage', syncFromStorage)
+
+    let disposed = false
+    let unlisten: UnlistenFn | undefined
+    if (isTauriRuntime()) {
+      void listen<ThemeMode>(THEME_CHANGED_EVENT, ({ payload }) => {
+        if (isThemeMode(payload)) {
+          setTheme(payload)
+        }
+      }).then((cleanup) => {
+        if (disposed) cleanup()
+        else unlisten = cleanup
+      }).catch(() => undefined)
+    }
+
+    return () => {
+      disposed = true
+      unlisten?.()
+      window.removeEventListener('storage', syncFromStorage)
+    }
+  }, [])
+
+  const toggle = () => setTheme((prev) => {
+    const next = prev === 'dark' ? 'light' : prev === 'light' ? 'pink' : 'dark'
+    if (isTauriRuntime()) {
+      void emit(THEME_CHANGED_EVENT, next).catch(() => undefined)
+    }
+    return next
+  })
   return [theme, toggle]
 }
 

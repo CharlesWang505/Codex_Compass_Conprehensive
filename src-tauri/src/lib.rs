@@ -23,6 +23,7 @@ mod codex_floating;
 mod codex_install;
 mod codex_storage;
 mod proxy_latency;
+mod remote_control;
 
 mod codex_plus_manager_lib {
     pub(crate) use crate::codex_commands as commands;
@@ -223,6 +224,15 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             codex_storage::setup(app).map_err(std::io::Error::other)?;
+            let remote_control =
+                remote_control::setup(app.handle()).map_err(std::io::Error::other)?;
+            if !watcher_hidden {
+                let startup_manager = remote_control.clone();
+                tauri::async_runtime::spawn(async move {
+                    let _ = startup_manager.start_if_enabled().await;
+                });
+            }
+            app.manage(remote_control);
             if !watcher_hidden {
                 app_preferences::setup_tray(app)?;
                 codex_floating::setup(app)?;
@@ -289,9 +299,26 @@ pub fn run() {
             app_preferences::load_app_preferences,
             app_preferences::save_close_behavior,
             app_preferences::resolve_close_request,
+            remote_control::remote_control_status,
+            remote_control::remote_control_monitor_snapshot,
+            remote_control::remote_control_save_settings,
+            remote_control::remote_control_reconnect,
+            remote_control::remote_control_set_paused,
+            remote_control::remote_control_pairing_info,
+            remote_control::remote_control_create_lan_pairing,
+            remote_control::remote_control_cancel_lan_pairing,
+            remote_control::remote_control_approve_lan_pairing,
+            remote_control::remote_control_reject_lan_pairing,
+            remote_control::remote_control_add_workspace,
+            remote_control::remote_control_remove_workspace,
+            remote_control::remote_control_update_workspace_permissions,
+            remote_control::remote_control_update_all_workspace_permissions,
+            remote_control::remote_control_discover_codex_projects,
+            remote_control::remote_control_import_codex_projects,
             codex_floating::floating_toggle_panel,
             codex_floating::floating_set_enabled,
             codex_floating::floating_reset_position,
+            codex_floating::floating_show_context_menu,
             codex_floating::floating_hide_panel,
             codex_floating::floating_show_main,
             codex_floating::floating_save_position,
@@ -325,6 +352,8 @@ pub fn run() {
             codex_plus_manager_lib::commands::list_local_sessions,
             codex_plus_manager_lib::commands::delete_local_session,
             codex_plus_manager_lib::commands::load_provider_sync_targets,
+            codex_plus_manager_lib::commands::preview_session_index_cleanup,
+            codex_plus_manager_lib::commands::apply_session_index_cleanup,
             codex_plus_manager_lib::commands::sync_providers_now,
             codex_plus_manager_lib::commands::refresh_script_market,
             codex_plus_manager_lib::commands::install_market_script,
@@ -375,11 +404,18 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(move |_, event| {
+        .run(move |app, event| {
             if matches!(
                 event,
                 tauri::RunEvent::Exit | tauri::RunEvent::ExitRequested { .. }
             ) {
+                if !watcher_hidden {
+                    let manager = app
+                        .state::<remote_control::RemoteControlManager>()
+                        .inner()
+                        .clone();
+                    tauri::async_runtime::block_on(manager.stop());
+                }
                 proxy_latency::shutdown_managed_mihomo();
                 if watcher_hidden {
                     codex_plus_core::watcher::clear_watcher_runtime_state(

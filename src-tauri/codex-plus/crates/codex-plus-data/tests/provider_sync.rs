@@ -1,5 +1,6 @@
 use codex_plus_data::{
-    ProviderSyncStatus, ProviderSyncTargetSource, load_provider_sync_targets, run_provider_sync,
+    ProviderSyncStatus, ProviderSyncTargetSource, apply_session_index_cleanup,
+    load_provider_sync_targets, preview_session_index_cleanup, run_provider_sync,
     run_provider_sync_with_target,
 };
 use rusqlite::Connection;
@@ -21,6 +22,15 @@ fn write_rollout(path: &Path, provider: &str, thread_id: &str, cwd: &str) {
     });
     let event = json!({"type": "event_msg", "payload": {"type": "user_message"}});
     fs::write(path, format!("{first}\n{event}\n")).unwrap();
+}
+
+fn session_index_line(id: &str, title: &str) -> String {
+    json!({
+        "id": id,
+        "thread_name": title,
+        "updated_at": "2026-07-15T12:00:00.000Z"
+    })
+    .to_string()
 }
 
 fn write_rollout_with_providers(path: &Path, providers: &[&str], thread_id: &str, cwd: &str) {
@@ -774,5 +784,140 @@ fn provider_sync_preserves_rollout_mtime() {
     assert!(
         drift < Duration::from_secs(2),
         "mtime drifted by {drift:?}, expected < 2s"
+    );
+}
+
+#[test]
+fn provider_sync_never_prunes_unconfirmed_index_entries() {
+    let tmp = tempdir().unwrap();
+    let home = tmp.path().join(".codex");
+    fs::create_dir(&home).unwrap();
+    fs::write(home.join("config.toml"), "model_provider = \"custom\"\n").unwrap();
+    let stale_id = "019f4e36-490e-7ae0-8e78-a8b3ab33a428";
+    let original_index = format!("{}\n", session_index_line(stale_id, "可能仍在云端同步"));
+    fs::write(home.join("session_index.jsonl"), &original_index).unwrap();
+
+    let result = run_provider_sync(Some(&home));
+
+    assert_eq!(result.status, ProviderSyncStatus::Synced);
+    assert_eq!(
+        fs::read_to_string(home.join("session_index.jsonl")).unwrap(),
+        original_index
+    );
+    let preview = preview_session_index_cleanup(Some(&home)).unwrap();
+    assert_eq!(preview.candidates.len(), 1);
+}
+
+#[test]
+fn session_index_cleanup_preserves_live_and_unknown_records() {
+    let tmp = tempdir().unwrap();
+    let home = tmp.path().join(".codex");
+    let live_id = "019f480d-bbc6-7b62-8a46-99597db8bde7";
+    let stale_id = "019f4e36-490e-7ae0-8e78-a8b3ab33a428";
+    let rollout = home.join(format!(
+        "sessions/rollout-2026-07-15T04-57-28-{live_id}.jsonl"
+    ));
+    fs::create_dir_all(rollout.parent().unwrap()).unwrap();
+    fs::write(&rollout, "{\"type\":\"event_msg\"}\n").unwrap();
+    let unknown = json!({"id": "future-record", "kind": "cloud_task"}).to_string();
+    let malformed = "not-json";
+    let original_index = format!(
+        "{}\n{}\n{unknown}\n{malformed}\n",
+        session_index_line(live_id, "live"),
+        session_index_line(stale_id, "stale"),
+    );
+    fs::write(home.join("session_index.jsonl"), &original_index).unwrap();
+
+    let preview = preview_session_index_cleanup(Some(&home)).unwrap();
+
+    assert_eq!(preview.candidates.len(), 1);
+    assert_eq!(preview.candidates[0].id, stale_id);
+    let result = apply_session_index_cleanup(
+        Some(&home),
+        &preview.snapshot_sha256,
+        &[stale_id.to_string()],
+    )
+    .unwrap();
+    assert_eq!(result.pruned_entries, 1);
+    let next_index = fs::read_to_string(home.join("session_index.jsonl")).unwrap();
+    assert!(next_index.contains(live_id));
+    assert!(!next_index.contains(stale_id));
+    assert!(next_index.contains(&unknown));
+    assert!(next_index.contains(malformed));
+    let backup = result.backup_dir.expect("cleanup backup");
+    assert_eq!(
+        fs::read_to_string(backup.join("session_index.jsonl")).unwrap(),
+        original_index
+    );
+}
+
+#[test]
+fn session_index_cleanup_aborts_when_index_changes_after_preview() {
+    let tmp = tempdir().unwrap();
+    let home = tmp.path().join(".codex");
+    fs::create_dir(&home).unwrap();
+    let stale_id = "019f4e36-490e-7ae0-8e78-a8b3ab33a428";
+    fs::write(
+        home.join("session_index.jsonl"),
+        format!("{}\n", session_index_line(stale_id, "stale")),
+    )
+    .unwrap();
+    let preview = preview_session_index_cleanup(Some(&home)).unwrap();
+    let new_id = "019f5e36-490e-7ae0-8e78-a8b3ab33a429";
+    let changed = format!(
+        "{}\n{}\n",
+        session_index_line(stale_id, "stale"),
+        session_index_line(new_id, "Codex 新建任务"),
+    );
+    fs::write(home.join("session_index.jsonl"), &changed).unwrap();
+
+    let error = apply_session_index_cleanup(
+        Some(&home),
+        &preview.snapshot_sha256,
+        &[stale_id.to_string()],
+    )
+    .unwrap_err();
+
+    assert!(error.message.contains("发生变化"));
+    assert!(error.backup_dir.is_none());
+    assert_eq!(
+        fs::read_to_string(home.join("session_index.jsonl")).unwrap(),
+        changed
+    );
+}
+
+#[test]
+fn session_index_preview_preserves_relation_only_sqlite_references() {
+    let tmp = tempdir().unwrap();
+    let home = tmp.path().join(".codex");
+    let sqlite_dir = home.join("sqlite");
+    fs::create_dir_all(&sqlite_dir).unwrap();
+    let relation_id = "019f6000-0000-7000-8000-000000000001";
+    let relation_db = sqlite_dir.join("codex-related.db");
+    let db = Connection::open(&relation_db).unwrap();
+    db.execute("CREATE TABLE sessions (id TEXT PRIMARY KEY)", [])
+        .unwrap();
+    db.execute("INSERT INTO sessions VALUES (?1)", [relation_id])
+        .unwrap();
+    drop(db);
+    fs::write(
+        home.join("session_index.jsonl"),
+        format!("{}\n", session_index_line(relation_id, "related")),
+    )
+    .unwrap();
+
+    assert!(
+        !codex_plus_core::codex_sqlite::codex_session_db_paths_from_home(&home)
+            .contains(&relation_db)
+    );
+    assert!(
+        codex_plus_core::codex_sqlite::codex_thread_reference_db_paths_from_home(&home)
+            .contains(&relation_db)
+    );
+    assert!(
+        preview_session_index_cleanup(Some(&home))
+            .unwrap()
+            .candidates
+            .is_empty()
     );
 }
