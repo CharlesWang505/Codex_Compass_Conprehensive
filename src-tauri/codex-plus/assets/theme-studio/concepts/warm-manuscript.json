@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "themeId": "warm-manuscript",
+  "layoutStyle": "fortune",
+  "displayName": "财神打工版",
+  "runtimeName": "财神工作台",
+  "description": "奶油宣纸、春节红金、祥云金币与原创财神程序员工作台。",
+  "asset": {
+    "wallpaper": "../fortune-workbench-wallpaper.webp",
+    "type": "pure-wallpaper",
+    "fit": "cover",
+    "position": "82% center",
+    "focusX": 0.78,
+    "focusY": 0.48,
+    "safeArea": "left",
+    "taskMode": "ambient",
+    "subject": "原创、虚构、明确为中年成年人的财神程序员形象",
+    "rightsContract": "不包含真实人物、公众人物、私人个体或受版权保护角色的肖像与设定",
+    "forbiddenRasterContent": [
+      "窗口",
+      "标题栏",
+      "侧栏",
+      "按钮",
+      "卡片",
+      "输入框",
+      "可读文字",
+      "Logo",
+      "水印"
+    ]
+  },
+  "copy": {
+    "brand": "财神打工版",
+    "brandMeta": "Codex 专属皮肤",
+    "eyebrow": "财神打工版 · Codex Compass",
+    "title": "今天先把项目搞赚钱",
+    "subtitle": "财神驻场，帮你优化成本、清理技术债、顺手催进度，让代码为结果服务。",
+    "status": "今日财运在线",
+    "composerPlaceholder": "财神在此，有求必应 · 输入你的需求吧！",
+    "companion": "多写代码，多发红包",
+    "cards": [
+      {
+        "title": "成本优化",
+        "shortDescription": "代码瘦身降成本，每一分钱都花在刀刃上",
+        "prompt": "找到最能省钱提效的机会。请分析当前项目的成本、性能和重复工作，实施最值得优先推进的优化。",
+        "icon": "code",
+        "tone": "red"
+      },
+      {
+        "title": "技术债清账",
+        "shortDescription": "扫描技术债，一次清理高风险负担",
+        "prompt": "按风险和收益清理技术债。请扫描当前项目并先修复最关键、回报最高的一项。",
+        "icon": "build",
+        "tone": "jade"
+      },
+      {
+        "title": "自动报表总结",
+        "shortDescription": "日报、周报、月报自动整理",
+        "prompt": "把项目状态自动整理成报告。请汇总进度、测试结果、风险和下一步待办。",
+        "icon": "review",
+        "tone": "red"
+      },
+      {
+        "title": "冲突合并开运",
+        "shortDescription": "识别冲突并完成可靠集成验证",
+        "prompt": "安全处理冲突并完成合并验证。请检查当前分支的冲突与集成风险，制定方案并验证。",
+        "icon": "repair",
+        "tone": "jade"
+      }
+    ]
+  },
+  "palette": {
+    "accent": "#b72d22",
+    "accentDeep": "#8f2118",
+    "accentSoft": "#f6ded3",
+    "gold": "#d6a92b",
+    "goldDeep": "#9b7013",
+    "goldSoft": "#f4dfae",
+    "jade": "#3f7b43",
+    "jadeSoft": "#e0ecd4",
+    "background": "#fbf3dd",
+    "surface": "#fffaf0",
+    "surfaceAlt": "#f4ead1",
+    "text": "#3c2518",
+    "textMuted": "#78634d",
+    "border": "#dfc996"
+  },
+  "typography": {
+    "display": [
+      "STKaiti",
+      "FZShuTi",
+      "KaiTi",
+      "Noto Serif SC",
+      "serif"
+    ],
+    "brand": [
+      "STKaiti",
+      "KaiTi",
+      "Noto Serif SC",
+      "serif"
+    ],
+    "ui": [
+      "Noto Serif SC",
+      "Microsoft YaHei",
+      "serif"
+    ],
+    "title": {
+      "desktop": "clamp(38px, 4.3vw, 57px)",
+      "compact": "34px",
+      "lineHeight": 1.12,
+      "weight": 760,
+      "letterSpacing": 0
+    },
+    "body": {
+      "size": "14px",
+      "lineHeight": 1.7,
+      "weight": 570,
+      "letterSpacing": 0
+    }
+  },
+  "decorations": {
+    "material": "温暖奶油宣纸与轻微金纤维",
+    "clouds": "仅用 CSS 渐变和轮廓表现祥云，不承载交互",
+    "coins": "品牌区和主视觉使用 CSS 同心圆金币装饰，不写入可读文字",
+    "seal": "复用运行时品牌标记节点，做成红漆金边印章",
+    "companion": "复用运行时 companion 装饰节点，做成红色红包牌，不创建新按钮",
+    "rules": [
+      "所有装饰层 pointer-events 为 none",
+      "不在壁纸内烘焙 UI 或文案",
+      "不复制侧栏项目、任务或用户数据",
+      "不通过 CSS content 伪造可操作控件"
+    ]
+  },
+  "appearance": {
+    "preferred": "light",
+    "codexMode": "light",
+    "colorScheme": "light",
+    "nativeTitleBarGlyph": "black",
+    "darkModePolicy": "该概念为浅色宣纸主题；启用时同步 Codex 浅色外观，不反转壁纸或使用滤镜模拟暗色。",
+    "windowControls": {
+      "normal": "#17120f",
+      "hover": "#f4dfae",
+      "closeHoverForeground": "#ffffff",
+      "closeHoverBackground": "#c92820"
+    }
+  },
+  "layout": {
+    "desktop": {
+      "showcaseMinHeight": "570px",
+      "copyWidth": "min(52%, 610px)",
+      "cardColumns": 4,
+      "cardGap": "12px",
+      "cardMinHeight": "132px"
+    },
+    "compact": {
+      "breakpoint": "1080px",
+      "cardColumns": 2,
+      "cardRows": 2,
+      "showcaseMinHeight": "640px",
+      "hideCompanion": true
+    },
+    "narrow": {
+      "breakpoint": "720px",
+      "cardColumns": 2,
+      "cardRows": 2,
+      "showcaseMinHeight": "690px",
+      "hideStatusAndMotif": true
+    },
+    "sidebar": {
+      "usesNativeRows": true,
+      "usesNativeScrollContainer": true,
+      "rowOverflow": "clip",
+      "independentRowScrollbars": false
+    },
+    "composer": {
+      "usesNativeComposer": true,
+      "selector": ".cc-theme-shell-composer",
+      "createsReplacementComposer": false
+    }
+  },
+  "selectors": {
+    "root": "html[data-codex-compass-theme=\"warm-manuscript\"]",
+    "showcase": ".cc-theme-showcase.theme-warm-manuscript.layout-fortune",
+    "sidebar": ".cc-theme-shell-sidebar",
+    "projectRow": ".cc-theme-shell-project-row",
+    "threadRow": ".cc-theme-shell-thread-row",
+    "composer": ".cc-theme-shell-composer",
+    "quickCards": ".cc-theme-showcase-card",
+    "protectedSurfaces": [
+      "[role=\"menu\"]",
+      "[role=\"listbox\"]",
+      "[role=\"dialog\"]",
+      "[role=\"alertdialog\"]",
+      "[data-slot=\"popover-content\"]",
+      "[data-slot=\"command\"]"
+    ],
+    "untouchedSurface": "[role=\"dialog\"][aria-label=\"图片预览\"], [role=\"dialog\"][aria-label=\"Image preview\"]"
+  },
+  "acceptanceContract": {
+    "scope": [
+      "每个样式选择器必须限定在 warm-manuscript 主题根节点下",
+      "不得使用裸 aside、nav、main、body 或 class 通配选择器覆盖 Codex",
+      "设置导航不得被识别或绘制成主题侧栏"
+    ],
+    "interaction": [
+      "四张快捷卡继续使用原生 button 和原有点击事件",
+      "快捷卡只填充原生 composer，不创建第二个输入框",
+      "项目行和任务行不产生独立水平或垂直滚动条",
+      "鼠标位于项目或任务行时仍由运行时把滚轮传递给主侧栏滚动容器"
+    ],
+    "operationalSurfaces": [
+      "菜单、列表框、Popover、命令面板和普通对话框保持不透明",
+      "设置页输入、下拉框、开关和二级确认弹窗保持可读",
+      "图片预览继续由共享预览规则控制，主题切片不得修改其定位、保存按钮或关闭按钮",
+      "代码块、Diff、终端和 Monaco 在任务页保持不透明"
+    ],
+    "responsive": [
+      "宽视口为单排四卡",
+      "宽度不高于 1080px 时改为稳定 2×2",
+      "宽度不高于 720px 时仍保持 2×2，隐藏非关键 companion、状态和金币装饰",
+      "标题、卡片和 composer 不发生水平溢出或相互覆盖"
+    ],
+    "visual": [
+      "左侧内容安全区保持低信息宣纸纹理",
+      "人物、双手、笔记本和关键道具保持在右侧裁切安全区",
+      "红、金、玉绿形成清晰层级，正文始终使用深棕墨色",
+      "窗口控制符号在浅色外观下使用黑色"
+    ]
+  }
+}

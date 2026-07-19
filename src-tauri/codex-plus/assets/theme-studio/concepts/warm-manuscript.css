@@ -1,0 +1,690 @@
+/*
+ * Warm Manuscript / Fortune Worker concept slice.
+ *
+ * This stylesheet only decorates nodes already identified by the Codex Compass
+ * runtime. It does not create navigation, cards, inputs, menus, or dialogs.
+ */
+
+html[data-codex-compass-theme="warm-manuscript"] {
+  --wm-red: #b72d22;
+  --wm-red-deep: #8f2118;
+  --wm-red-soft: #f6ded3;
+  --wm-gold: #d6a92b;
+  --wm-gold-deep: #9b7013;
+  --wm-gold-soft: #f4dfae;
+  --wm-jade: #3f7b43;
+  --wm-jade-soft: #e0ecd4;
+  --wm-paper: #fbf3dd;
+  --wm-paper-raised: #fffaf0;
+  --wm-paper-muted: #f4ead1;
+  --wm-ink: #3c2518;
+  --wm-ink-muted: #78634d;
+  --wm-border: #dfc996;
+  --wm-shadow: rgb(83 48 20 / 14%);
+  color-scheme: light;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-sidebar {
+  color: var(--wm-ink) !important;
+  border-right: 1px solid color-mix(in srgb, var(--wm-red) 22%, var(--wm-border)) !important;
+  background:
+    linear-gradient(180deg, rgb(255 250 240 / 98%), rgb(251 243 221 / 98%)) !important;
+  box-shadow: 8px 0 26px rgb(90 55 20 / 8%);
+  backdrop-filter: none !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-sidebar::before {
+  background:
+    radial-gradient(ellipse at 8% 12%, transparent 0 26px, rgb(214 169 43 / 13%) 27px 29px, transparent 30px),
+    radial-gradient(ellipse at 31% 13%, transparent 0 20px, rgb(214 169 43 / 10%) 21px 23px, transparent 24px),
+    linear-gradient(145deg, rgb(244 223 174 / 42%), transparent 38%);
+  opacity: 1;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-sidebar::after {
+  top: 78px;
+  right: 0;
+  width: 2px;
+  height: min(210px, 28vh);
+  background: linear-gradient(180deg, transparent, var(--wm-red), var(--wm-gold), transparent);
+  opacity: 0.55;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-product-button {
+  min-height: 58px !important;
+  padding: 8px 10px 8px 48px !important;
+  color: var(--wm-red-deep) !important;
+  border: 0 !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--wm-red) 18%, var(--wm-border)) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: "STKaiti", "KaiTi", "Noto Serif SC", "Microsoft YaHei", serif !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-product-button::before {
+  left: 9px;
+  width: 31px;
+  height: 31px;
+  color: #fff9e8;
+  border: 1px solid #8f2118;
+  border-radius: 7px;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 18%), transparent 42%),
+    var(--wm-red);
+  box-shadow:
+    inset 0 0 0 2px rgb(255 224 154 / 30%),
+    0 4px 10px rgb(120 38 24 / 16%);
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: 17px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-product-button::after {
+  left: 48px;
+  right: 8px;
+  bottom: 5px;
+  color: var(--wm-ink-muted);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-search-button {
+  color: var(--wm-red-deep) !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-search-button:hover {
+  color: var(--wm-red) !important;
+  background: var(--wm-red-soft) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-new-task {
+  min-height: 36px !important;
+  color: var(--wm-red-deep) !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 720 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-new-task:hover {
+  color: var(--wm-red-deep) !important;
+  border-color: color-mix(in srgb, var(--wm-red) 24%, var(--wm-border)) !important;
+  background: var(--wm-red-soft) !important;
+  transform: none;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-nav-row {
+  color: var(--wm-ink) !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-nav-row:hover {
+  color: var(--wm-red-deep) !important;
+  border-color: color-mix(in srgb, var(--wm-gold) 22%, var(--wm-border)) !important;
+  background: rgb(244 223 174 / 34%) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-nav-coral svg {
+  color: var(--wm-red) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-nav-mint svg {
+  color: var(--wm-jade) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-nav-sky svg {
+  color: var(--wm-gold-deep) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-nav-violet svg {
+  color: #9d5135 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-group-heading {
+  margin-top: 9px !important;
+  padding-top: 8px !important;
+  color: var(--wm-red-deep) !important;
+  border-top: 1px dashed color-mix(in srgb, var(--wm-red) 24%, var(--wm-border)) !important;
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-project-row,
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-thread-row {
+  min-height: 30px !important;
+  max-height: 32px !important;
+  overflow: clip !important;
+  border-radius: 6px !important;
+  line-height: 1.25 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-project-row {
+  color: var(--wm-ink) !important;
+  font-weight: 720 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-thread-row {
+  margin-left: 8px !important;
+  color: var(--wm-ink-muted) !important;
+  border: 0 !important;
+  border-left: 1px solid color-mix(in srgb, var(--wm-gold) 30%, var(--wm-border)) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-active-row {
+  color: var(--wm-red-deep) !important;
+  border-color: color-mix(in srgb, var(--wm-red) 26%, var(--wm-border)) !important;
+  background: linear-gradient(90deg, var(--wm-red-soft), rgb(255 250 240 / 44%)) !important;
+  box-shadow: inset 3px 0 0 var(--wm-red) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-account-row {
+  color: var(--wm-ink) !important;
+  border: 1px solid color-mix(in srgb, var(--wm-gold) 34%, var(--wm-border)) !important;
+  background:
+    linear-gradient(90deg, rgb(244 223 174 / 64%), rgb(255 250 240 / 84%)) !important;
+  box-shadow: none !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-topbar,
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-sessionbar {
+  color: var(--wm-ink) !important;
+  border-color: var(--wm-border) !important;
+  background: rgb(255 250 240 / 97%) !important;
+  backdrop-filter: none !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-window-control {
+  color: #17120f !important;
+  background: transparent !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-window-minimize:hover,
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-window-maximize:hover {
+  color: #17120f !important;
+  background: var(--wm-gold-soft) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-window-close:hover {
+  color: #ffffff !important;
+  background: #c92820 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune {
+  min-height: 570px;
+  grid-template-rows: minmax(330px, 1fr) auto;
+  gap: 0;
+  padding: 28px 26px 24px;
+  overflow: hidden;
+  color: var(--wm-ink);
+  border: 1px solid color-mix(in srgb, var(--wm-red) 30%, var(--wm-border));
+  border-radius: 8px;
+  background-color: var(--wm-paper);
+  background-position: 82% center;
+  box-shadow:
+    0 20px 44px var(--wm-shadow),
+    inset 0 0 0 1px rgb(255 255 255 / 52%);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune::before {
+  background:
+    linear-gradient(90deg,
+      rgb(255 248 232 / 99%) 0%,
+      rgb(255 248 232 / 96%) 36%,
+      rgb(255 248 232 / 70%) 50%,
+      rgb(255 248 232 / 16%) 67%,
+      transparent 84%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune::after {
+  inset: 80px auto auto 35%;
+  width: 23%;
+  height: 150px;
+  background:
+    radial-gradient(circle at 18% 30%, rgb(214 169 43 / 58%) 0 5px, rgb(255 244 198 / 72%) 6px 9px, rgb(155 112 19 / 46%) 10px 12px, transparent 13px),
+    radial-gradient(circle at 78% 62%, rgb(214 169 43 / 50%) 0 4px, rgb(255 244 198 / 68%) 5px 8px, rgb(155 112 19 / 42%) 9px 11px, transparent 12px),
+    radial-gradient(ellipse at 38% 84%, transparent 0 24px, rgb(214 169 43 / 18%) 25px 27px, transparent 28px),
+    radial-gradient(ellipse at 64% 84%, transparent 0 22px, rgb(214 169 43 / 14%) 23px 25px, transparent 26px);
+  filter: none;
+  opacity: 0.92;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-brandline {
+  top: 20px;
+  left: 26px;
+  right: 26px;
+  gap: 10px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-brandmark {
+  width: 35px;
+  height: 35px;
+  color: #fff8e8;
+  border: 1px solid var(--wm-red-deep);
+  border-radius: 7px;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 16%), transparent 44%),
+    var(--wm-red);
+  box-shadow:
+    inset 0 0 0 2px rgb(255 223 145 / 28%),
+    0 5px 12px rgb(120 38 24 / 18%);
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: 18px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-brandname {
+  color: var(--wm-red-deep);
+  font-family: "STKaiti", "KaiTi", "Noto Serif SC", serif;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-brandmeta {
+  color: var(--wm-ink-muted);
+  font-size: 10px;
+  font-weight: 620;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-status {
+  padding: 6px 10px 6px 20px;
+  color: var(--wm-ink-muted);
+  border: 1px solid color-mix(in srgb, var(--wm-gold) 30%, var(--wm-border));
+  border-radius: 999px;
+  background: rgb(255 250 240 / 92%);
+  font-size: 10px;
+  font-weight: 720;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-status::before {
+  background: #65a442;
+  box-shadow: 0 0 0 3px rgb(101 164 66 / 16%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-copy {
+  width: min(52%, 610px);
+  align-self: start;
+  margin-top: 94px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-eyebrow {
+  margin-bottom: 11px;
+  color: var(--wm-gold-deep);
+  font-size: 11px;
+  font-weight: 760;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-title {
+  max-width: 650px;
+  color: var(--wm-red-deep);
+  font-family: "STKaiti", "FZShuTi", "KaiTi", "Noto Serif SC", serif;
+  font-size: clamp(38px, 4.3vw, 57px);
+  font-weight: 760;
+  line-height: 1.12;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-subtitle {
+  max-width: 590px;
+  margin-top: 16px;
+  color: var(--wm-ink);
+  font-size: 14px;
+  font-weight: 570;
+  line-height: 1.7;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-badge {
+  margin-top: 18px;
+  color: var(--wm-red-deep);
+  border: 1px solid color-mix(in srgb, var(--wm-red) 28%, var(--wm-border));
+  border-radius: 999px;
+  background: rgb(246 222 211 / 78%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-motif {
+  top: 14%;
+  right: 31%;
+  width: 74px;
+  border: 8px solid rgb(214 169 43 / 50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 22px, rgb(155 112 19 / 38%) 23px 25px, transparent 26px);
+  box-shadow:
+    inset 0 0 0 2px rgb(255 244 198 / 74%),
+    0 8px 18px rgb(105 68 22 / 10%);
+  opacity: 0.72;
+  transform: rotate(13deg);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-motif::before {
+  inset: 19%;
+  border: 2px solid rgb(155 112 19 / 52%);
+  border-radius: 5px;
+  transform: rotate(45deg);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-motif::after {
+  inset: 38%;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wm-red);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-companion {
+  right: 16px;
+  bottom: 146px;
+  width: 112px;
+  min-height: 78px;
+  color: #fff7dc;
+  border: 1px solid #8f2118;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% -18px, transparent 0 30px, rgb(214 169 43 / 58%) 31px 33px, transparent 34px),
+    linear-gradient(145deg, #c63a29, #971f19);
+  box-shadow:
+    inset 0 0 0 2px rgb(255 224 154 / 18%),
+    0 10px 24px rgb(92 35 22 / 18%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-companion-mark {
+  color: #ffe5a0;
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: 26px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-companion-label {
+  color: #fff7dc;
+  font-size: 9px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: -24px;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card {
+  min-width: 0;
+  min-height: 132px;
+  padding: 16px 13px !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 11px;
+  overflow: clip !important;
+  color: var(--wm-ink) !important;
+  border: 1px solid color-mix(in srgb, var(--wm-gold) 28%, var(--wm-border)) !important;
+  border-radius: 8px !important;
+  background: rgb(255 250 240 / 94%) !important;
+  box-shadow:
+    0 10px 22px rgb(76 48 24 / 10%),
+    inset 0 0 0 1px rgb(255 255 255 / 62%);
+  backdrop-filter: blur(6px);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card:hover {
+  color: var(--wm-ink) !important;
+  border-color: color-mix(in srgb, var(--wm-red) 42%, var(--wm-border)) !important;
+  background: #fff7e6 !important;
+  transform: translateY(-2px);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-icon {
+  width: 44px;
+  height: 44px;
+  color: #fff7e2;
+  border: 1px solid rgb(143 33 24 / 42%);
+  border-radius: 50%;
+  background: var(--wm-red);
+  box-shadow:
+    0 0 0 5px rgb(246 222 211 / 60%),
+    0 5px 12px rgb(126 41 28 / 16%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card:nth-child(even) .cc-theme-showcase-card-icon {
+  color: #fffdf0;
+  border-color: rgb(42 99 48 / 42%);
+  background: var(--wm-jade);
+  box-shadow:
+    0 0 0 5px rgb(224 236 212 / 68%),
+    0 5px 12px rgb(45 91 47 / 14%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-label {
+  color: var(--wm-ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  font-size: 14px;
+  font-weight: 780;
+  line-height: 1.35;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-description {
+  margin-top: 6px;
+  color: var(--wm-ink-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-index {
+  color: color-mix(in srgb, var(--wm-gold-deep) 62%, transparent);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-arrow {
+  width: 20px;
+  height: 20px;
+  color: #fff9e8;
+  background: var(--wm-gold);
+  box-shadow: 0 4px 10px rgb(155 112 19 / 20%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card:nth-child(even) .cc-theme-showcase-card-arrow {
+  background: var(--wm-jade);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase-composer,
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer {
+  border: 1px solid color-mix(in srgb, var(--wm-red) 34%, var(--wm-border)) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgb(255 252 244 / 98%), rgb(255 248 232 / 98%)) !important;
+  box-shadow:
+    0 12px 28px rgb(74 45 20 / 12%),
+    inset 0 0 0 1px rgb(255 255 255 / 70%);
+  backdrop-filter: none !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer textarea,
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer input,
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer [contenteditable="true"] {
+  color: var(--wm-ink) !important;
+  caret-color: var(--wm-red) !important;
+  background: transparent !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer .cc-theme-shell-model-button {
+  color: var(--wm-ink-muted) !important;
+  border-color: color-mix(in srgb, var(--wm-gold) 26%, var(--wm-border)) !important;
+  background: var(--wm-paper-muted) !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer .cc-theme-shell-attach-button {
+  color: var(--wm-gold-deep) !important;
+  background: transparent !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer .cc-theme-shell-send-button {
+  color: #ffffff !important;
+  border-color: var(--wm-red-deep) !important;
+  background: var(--wm-red) !important;
+  box-shadow: 0 7px 16px rgb(150 40 29 / 22%);
+}
+
+html[data-codex-compass-theme="warm-manuscript"] .cc-theme-shell-composer .cc-theme-shell-stop-button {
+  color: #ffffff !important;
+  background: #9e2c24 !important;
+}
+
+/*
+ * Operational surfaces stay opaque and structurally native. Image preview is
+ * deliberately excluded so the shared preview contract remains authoritative.
+ */
+html[data-codex-compass-theme="warm-manuscript"] :is(
+  [role="menu"],
+  [role="listbox"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="command"],
+  [data-radix-menu-content],
+  [data-radix-popover-content]
+) {
+  color: var(--wm-ink) !important;
+  border-color: var(--wm-border) !important;
+  background-color: var(--wm-paper-raised) !important;
+  background-image: none !important;
+  box-shadow: 0 16px 42px rgb(62 39 21 / 18%) !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"] :is(
+  [role="dialog"]:not([aria-label="图片预览"]):not([aria-label="Image preview"]),
+  [role="alertdialog"]
+) {
+  color: var(--wm-ink) !important;
+  border-color: var(--wm-border) !important;
+  background-color: var(--wm-paper-raised) !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+html[data-codex-compass-theme="warm-manuscript"][data-codex-compass-theme-page="thread"] :is(
+  pre,
+  [data-testid="diff-view"],
+  [data-testid="terminal-panel"],
+  .monaco-editor,
+  .monaco-editor .margin
+) {
+  color: var(--wm-ink) !important;
+  border-color: var(--wm-border) !important;
+  background-color: #f8eed8 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 1080px) {
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune {
+    min-height: 640px;
+    grid-template-rows: minmax(330px, 1fr) auto;
+    background-position: 76% center;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune::before {
+    background:
+      linear-gradient(90deg,
+        rgb(255 248 232 / 99%) 0%,
+        rgb(255 248 232 / 96%) 43%,
+        rgb(255 248 232 / 72%) 58%,
+        rgb(255 248 232 / 20%) 76%,
+        transparent 100%);
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-copy {
+    width: min(58%, 570px);
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card {
+    min-height: 112px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-companion {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune {
+    min-height: 690px;
+    grid-template-rows: minmax(300px, 1fr) auto;
+    padding: 22px 16px 18px;
+    background-position: 72% center;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript.layout-fortune::before {
+    background: rgb(255 248 232 / 88%);
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-brandline {
+    left: 16px;
+    right: 16px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-status,
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-motif {
+    display: none;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-copy {
+    width: 100%;
+    margin-top: 86px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-title {
+    font-size: 34px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-subtitle {
+    font-size: 12px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card {
+    min-height: 104px;
+    padding: 11px 9px !important;
+    grid-template-columns: 36px minmax(0, 1fr) 17px;
+    gap: 8px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-icon {
+    width: 34px;
+    height: 34px;
+    box-shadow: 0 0 0 3px rgb(246 222 211 / 56%);
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-label {
+    font-size: 11px;
+  }
+
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card-description {
+    font-size: 9px;
+    -webkit-line-clamp: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-codex-compass-theme="warm-manuscript"] .cc-theme-showcase.theme-warm-manuscript .cc-theme-showcase-card {
+    transition-duration: 0.01ms !important;
+  }
+}
