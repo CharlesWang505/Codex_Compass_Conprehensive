@@ -1,0 +1,762 @@
+/*
+ * Cyan Virtual Stage concept slice.
+ * The runtime owns DOM discovery and event handlers. This file only styles
+ * elements that already carry Codex Compass theme classes.
+ */
+
+html[data-codex-compass-theme="cyan-virtual-stage"] {
+  --cc-idol-ink: #153f4a;
+  --cc-idol-muted: #62838d;
+  --cc-idol-cyan: #10b9bf;
+  --cc-idol-cyan-deep: #07939f;
+  --cc-idol-aqua: #c8f4f2;
+  --cc-idol-sky: #8bdcf4;
+  --cc-idol-pink: #f3a9d5;
+  --cc-idol-lavender: #c5adf4;
+  --cc-idol-coral: #ff9b99;
+  --cc-idol-surface: rgba(251, 255, 255, 0.96);
+  --cc-idol-surface-strong: #fbffff;
+  --cc-idol-border: rgba(50, 176, 188, 0.28);
+  color-scheme: light;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-sidebar {
+  color: var(--cc-idol-ink) !important;
+  border-right-color: var(--cc-idol-border) !important;
+  background:
+    linear-gradient(180deg, rgba(247, 254, 255, 0.98), rgba(234, 250, 252, 0.97)) !important;
+  box-shadow: 8px 0 24px rgba(23, 88, 99, 0.08);
+  backdrop-filter: blur(14px) saturate(1.04) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-sidebar::before {
+  background:
+    linear-gradient(150deg, rgba(139, 220, 244, 0.18), transparent 31%),
+    linear-gradient(25deg, transparent 83%, rgba(197, 173, 244, 0.12) 83%);
+  opacity: 1;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-sidebar::after {
+  content: "\2726";
+  position: absolute;
+  z-index: -1;
+  right: 18px;
+  bottom: 92px;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  color: rgba(16, 185, 191, 0.18);
+  background: none;
+  font-size: 42px;
+  line-height: 1;
+  transform: rotate(10deg);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-product-button {
+  min-height: 56px !important;
+  padding: 9px 42px 8px 14px !important;
+  color: var(--cc-idol-cyan-deep) !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: "Segoe UI Variable Display", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 780 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-product-button::after {
+  content: "\266B";
+  position: absolute;
+  top: 15px;
+  right: 18px;
+  left: auto;
+  bottom: auto;
+  width: auto;
+  color: var(--cc-idol-pink);
+  overflow: visible;
+  font-size: 18px;
+  line-height: 1;
+  text-shadow: 9px 5px 0 rgba(139, 220, 244, 0.72);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-search-button {
+  color: var(--cc-idol-cyan-deep) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-search-button:hover {
+  background: rgba(200, 244, 242, 0.72) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-new-task {
+  min-height: 38px !important;
+  color: var(--cc-idol-ink) !important;
+  border-color: rgba(16, 185, 191, 0.16) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(90deg, rgba(200, 244, 242, 0.82), rgba(229, 247, 250, 0.72)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.58) !important;
+  font-weight: 680 !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-new-task svg {
+  width: 20px !important;
+  height: 20px !important;
+  color: var(--cc-idol-cyan-deep) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-new-task:hover {
+  color: #0d3b45 !important;
+  border-color: rgba(16, 185, 191, 0.3) !important;
+  background: linear-gradient(90deg, rgba(187, 244, 240, 0.96), rgba(222, 245, 251, 0.9)) !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-nav-row {
+  min-height: 34px !important;
+  color: #315c66 !important;
+  border-radius: 7px !important;
+  font-size: 13px !important;
+  font-weight: 570 !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-nav-row:hover {
+  color: #123f49 !important;
+  border-color: transparent !important;
+  background: rgba(224, 248, 250, 0.9) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-nav-coral svg {
+  color: var(--cc-idol-coral) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-nav-mint svg {
+  color: var(--cc-idol-cyan) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-nav-sky svg {
+  color: #4ab9df !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-nav-violet svg {
+  color: #9a78df !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-group-heading {
+  position: relative !important;
+  margin-top: 12px !important;
+  padding: 8px 8px 4px 18px !important;
+  color: var(--cc-idol-cyan-deep) !important;
+  border-top: 1px solid rgba(16, 185, 191, 0.12) !important;
+  font-size: 11px !important;
+  font-weight: 760 !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-group-heading::before {
+  content: "\2726";
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  color: var(--cc-idol-pink);
+  font-size: 10px;
+  line-height: 1;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-sidebar [data-app-action-sidebar-scroll] {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(16, 185, 191, 0.35) transparent;
+  scrollbar-gutter: stable;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-project-row {
+  min-height: 31px !important;
+  max-height: 32px !important;
+  color: #244e58 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 12.5px !important;
+  font-weight: 680 !important;
+  overflow: clip !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-project-row svg {
+  color: var(--cc-idol-cyan-deep) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-thread-row {
+  position: relative !important;
+  min-height: 29px !important;
+  max-height: 30px !important;
+  margin-left: 13px !important;
+  padding-left: 16px !important;
+  color: #54717a !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 520 !important;
+  overflow: clip !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-thread-row::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateY(-50%);
+  border: 1.5px solid rgba(16, 185, 191, 0.72);
+  border-radius: 50%;
+  background: #eefcfc;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-project-row:hover,
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-thread-row:hover {
+  color: #123f49 !important;
+  background: rgba(227, 249, 250, 0.92) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-active-row {
+  color: #143f49 !important;
+  border-color: transparent !important;
+  background: linear-gradient(90deg, rgba(200, 244, 242, 0.95), rgba(229, 247, 250, 0.72)) !important;
+  box-shadow: inset 3px 0 0 var(--cc-idol-cyan) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-active-row::before {
+  border-color: var(--cc-idol-cyan);
+  background: var(--cc-idol-cyan);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-account-row {
+  color: #244e58 !important;
+  border-color: rgba(16, 185, 191, 0.16) !important;
+  border-radius: 8px !important;
+  background: rgba(246, 254, 255, 0.92) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-topbar,
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-sessionbar {
+  color: #173b43 !important;
+  border-color: rgba(16, 185, 191, 0.18) !important;
+  background: rgba(248, 254, 255, 0.96) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-window-control {
+  color: #153943 !important;
+  background: transparent !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-window-minimize:hover,
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-window-maximize:hover {
+  color: #092f38 !important;
+  background: rgba(200, 244, 242, 0.88) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-shell-window-close:hover {
+  color: #ffffff !important;
+  background: #d92d20 !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-host {
+  min-height: 572px !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol {
+  min-height: 572px;
+  grid-template-rows: minmax(322px, 1fr) auto;
+  gap: 0;
+  padding: 38px 32px 24px;
+  color: var(--cc-idol-ink);
+  border: 1px solid rgba(16, 185, 191, 0.34);
+  border-radius: 8px;
+  background-color: #eafafd;
+  background-position: 78% center;
+  box-shadow:
+    0 20px 48px rgba(28, 101, 113, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol::before {
+  background:
+    linear-gradient(90deg,
+      rgba(247, 255, 255, 0.99) 0%,
+      rgba(242, 254, 255, 0.97) 34%,
+      rgba(236, 252, 255, 0.8) 46%,
+      rgba(236, 252, 255, 0.18) 63%,
+      transparent 82%);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol::after {
+  content: "\2726     \00B7     \2661     \00B7     \266B";
+  z-index: 1;
+  inset: 86px auto auto 36%;
+  width: 29%;
+  height: auto;
+  pointer-events: none;
+  color: rgba(16, 185, 191, 0.34);
+  background: none;
+  filter: none;
+  font-size: 17px;
+  line-height: 1;
+  letter-spacing: 0;
+  opacity: 1;
+  transform: rotate(-4deg);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandline {
+  top: 20px;
+  left: 32px;
+  right: 32px;
+  gap: 10px;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandmark {
+  width: 34px;
+  height: 34px;
+  color: var(--cc-idol-cyan-deep);
+  border-color: rgba(16, 185, 191, 0.28);
+  border-radius: 8px;
+  background: rgba(247, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(16, 133, 146, 0.12);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandcopy {
+  gap: 2px;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandname {
+  color: #0a8d99;
+  font-family: "Segoe UI Variable Display", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 780;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandmeta {
+  color: #698891;
+  font-size: 10px;
+  font-weight: 620;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-status {
+  min-height: 25px;
+  padding: 0 10px;
+  color: #31717a;
+  border: 1px solid rgba(16, 185, 191, 0.2);
+  border-radius: 999px;
+  background: rgba(244, 254, 255, 0.88);
+  font-size: 10px;
+  font-weight: 680;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-status::before {
+  background: var(--cc-idol-cyan);
+  box-shadow: 0 0 0 3px rgba(16, 185, 191, 0.14);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-copy {
+  width: min(50%, 560px);
+  align-self: start;
+  margin-top: 82px;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-eyebrow {
+  color: #138f9b;
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-title {
+  max-width: 620px;
+  margin-top: 10px;
+  color: #123f52;
+  font-family: "Segoe UI Variable Display", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 42px;
+  font-weight: 760;
+  line-height: 1.16;
+  letter-spacing: 0;
+  text-wrap: balance;
+  white-space: normal;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-subtitle {
+  max-width: 510px;
+  margin-top: 13px;
+  color: #4e7883;
+  font-size: 14px;
+  font-weight: 560;
+  line-height: 1.65;
+  letter-spacing: 0;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-badge {
+  margin-top: 17px;
+  color: #116f79;
+  border-color: rgba(16, 185, 191, 0.22);
+  border-radius: 7px;
+  background: rgba(231, 251, 252, 0.9);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-motif {
+  top: 54px;
+  right: 24%;
+  width: 74px;
+  height: 74px;
+  border: 0;
+  background: none;
+  opacity: 0.82;
+  transform: rotate(8deg);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-motif::before {
+  content: "";
+  inset: 8px;
+  border: 0;
+  background: linear-gradient(135deg, var(--cc-idol-pink), var(--cc-idol-lavender));
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.42), 0 9px 20px rgba(136, 104, 206, 0.2);
+  clip-path: polygon(50% 0, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0 50%, 39% 35%);
+  transform: none;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-motif::after {
+  content: "\2661";
+  inset: 40px -22px auto auto;
+  color: var(--cc-idol-cyan);
+  border: 0;
+  background: none;
+  font-size: 28px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: -12px;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card {
+  min-width: 0;
+  min-height: 148px;
+  padding: 17px 14px 15px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+  gap: 9px;
+  overflow: hidden !important;
+  color: #153f4a !important;
+  border: 1px solid rgba(16, 185, 191, 0.28) !important;
+  border-radius: 8px !important;
+  background: rgba(251, 255, 255, 0.94) !important;
+  box-shadow:
+    0 12px 26px rgba(29, 112, 123, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(12px) saturate(1.06);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card::after {
+  content: "\2665";
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  pointer-events: none;
+  color: rgba(243, 133, 194, 0.76);
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card:hover {
+  color: #103943 !important;
+  border-color: rgba(16, 185, 191, 0.56) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow:
+    0 15px 30px rgba(29, 112, 123, 0.16),
+    0 0 0 3px rgba(200, 244, 242, 0.34);
+  transform: translateY(-3px);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card:active {
+  transform: translateY(-1px);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card:focus-visible {
+  outline: 3px solid rgba(16, 185, 191, 0.36);
+  outline-offset: 2px;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-icon {
+  width: 48px;
+  height: 48px;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c4ca, #77d9ed);
+  box-shadow: 0 7px 16px rgba(16, 166, 177, 0.2);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card:nth-child(2) .cc-theme-showcase-card-icon {
+  background: linear-gradient(135deg, #f09acb, #c7a8f0);
+  box-shadow: 0 7px 16px rgba(184, 119, 211, 0.2);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card:nth-child(3) .cc-theme-showcase-card-icon {
+  background: linear-gradient(135deg, #8bbee9, #a88bea);
+  box-shadow: 0 7px 16px rgba(121, 119, 210, 0.2);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card:nth-child(4) .cc-theme-showcase-card-icon {
+  background: linear-gradient(135deg, #35c6bd, #ff9fbc);
+  box-shadow: 0 7px 16px rgba(33, 162, 165, 0.2);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-copy {
+  min-width: 0;
+  padding-bottom: 12px;
+  text-align: center;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-label {
+  color: #153f4a;
+  font-size: 14px;
+  font-weight: 730;
+  line-height: 1.42;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: normal;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-description,
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-arrow,
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-index {
+  display: none;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-companion {
+  right: 16px;
+  bottom: 160px;
+  width: 112px;
+  min-height: 124px;
+  padding: 8px 8px 24px;
+  border-color: rgba(139, 188, 233, 0.52);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, transparent 67%, rgba(255, 255, 255, 0.97) 68%),
+    var(--cc-showcase-hero, none) 83% 34% / 360% auto no-repeat,
+    #ffffff;
+  box-shadow: 0 13px 28px rgba(43, 95, 118, 0.2);
+  transform: rotate(-5deg);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-companion-mark {
+  inset: 7px auto auto 7px;
+  color: #ffffff;
+  background: rgba(16, 185, 191, 0.9);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-companion-label {
+  padding: 3px 2px 0;
+  color: #4d7580;
+  border-radius: 0;
+  background: transparent;
+  font-size: 8px;
+  font-weight: 680;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-composer[data-codex-theme-native-composer="true"] {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  color: var(--cc-idol-ink) !important;
+  border: 1px solid rgba(16, 185, 191, 0.32) !important;
+  border-radius: 8px !important;
+  background: rgba(251, 255, 255, 0.97) !important;
+  box-shadow:
+    0 15px 34px rgba(29, 112, 123, 0.13),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(12px) saturate(1.04);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-composer[data-codex-theme-native-composer="true"]::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 18px;
+  right: 76px;
+  bottom: 8px;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(16, 185, 191, 0.5), rgba(139, 220, 244, 0.36), rgba(243, 169, 213, 0.3), transparent);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-composer[data-codex-theme-native-composer="true"] :is(textarea, [contenteditable="true"]) {
+  color: #173b43 !important;
+  caret-color: var(--cc-idol-cyan-deep);
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-composer[data-codex-theme-native-composer="true"] :is(textarea, [contenteditable="true"])::placeholder {
+  color: #78949c !important;
+  opacity: 1;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-composer[data-codex-theme-native-composer="true"] :is(button[aria-label="发送"], button[aria-label="Send"]) {
+  color: #ffffff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #16b9bf, #31b8dd) !important;
+  box-shadow: 0 7px 16px rgba(16, 155, 170, 0.24) !important;
+}
+
+html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-composer[data-codex-theme-native-composer="true"] :is(button[aria-label="发送"], button[aria-label="Send"]):hover {
+  background: linear-gradient(135deg, #079da8, #22a8d2) !important;
+}
+
+@media (max-width: 1180px) {
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-companion {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-host {
+    min-height: 620px !important;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol {
+    min-height: 620px;
+    grid-template-rows: minmax(316px, 1fr) auto;
+    padding: 32px 24px 22px;
+    background-position: 72% center;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol::before {
+    background:
+      linear-gradient(90deg,
+        rgba(247, 255, 255, 0.99) 0%,
+        rgba(242, 254, 255, 0.94) 44%,
+        rgba(236, 252, 255, 0.48) 68%,
+        transparent 91%);
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandline {
+    top: 18px;
+    left: 24px;
+    right: 24px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-copy {
+    width: min(62%, 520px);
+    margin-top: 72px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-title {
+    font-size: 34px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-motif {
+    display: none;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 0;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card {
+    min-height: 116px;
+    padding: 13px 13px 12px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase-host {
+    min-height: 640px !important;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol {
+    min-height: 640px;
+    grid-template-rows: minmax(302px, 1fr) auto;
+    padding: 26px 16px 18px;
+    background-position: 76% center;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol::before {
+    background: rgba(243, 254, 255, 0.82);
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage.layout-idol::after {
+    display: none;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandline {
+    top: 14px;
+    left: 16px;
+    right: 16px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-brandname {
+    font-size: 16px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-copy {
+    width: 100%;
+    margin-top: 70px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-title {
+    max-width: 460px;
+    font-size: 30px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-subtitle {
+    max-width: 440px;
+    font-size: 12px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card {
+    min-height: 108px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 11px 9px 10px !important;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  html[data-codex-compass-theme="cyan-virtual-stage"][data-codex-compass-theme-page="home"] .cc-theme-showcase.theme-cyan-virtual-stage .cc-theme-showcase-card-label {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-codex-compass-theme="cyan-virtual-stage"] .cc-theme-showcase-card {
+    transition: none !important;
+  }
+}

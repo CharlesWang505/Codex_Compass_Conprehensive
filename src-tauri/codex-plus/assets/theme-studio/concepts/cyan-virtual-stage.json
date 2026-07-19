@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 1,
+  "id": "cyan-virtual-stage",
+  "name": "青蓝虚拟歌姬",
+  "status": "implementation-slice",
+  "sourceConcept": {
+    "reference": "skin-07 青蓝虚拟歌姬概念图",
+    "wallpaperAsset": "../cyan-virtual-stage-wallpaper.webp",
+    "wallpaperRole": "仅作为真实 Codex UI 下方的纯背景，不包含文字、侧栏、卡片、按钮或输入框",
+    "visualSummary": "粉青数字舞台、像素星、心形光点、抽象音乐波形、全息丝带与原创成年虚拟歌姬",
+    "referenceDetails": [
+      "浅青半透明应用外壳与细青色边界",
+      "左侧品牌、搜索、新建任务、导航、项目树、任务列表和账户区",
+      "顶部品牌栏、连接状态和舞台徽记",
+      "左侧标题与说明，右侧原创成年虚拟歌姬主体",
+      "四张并排的真实快捷任务卡",
+      "底部原生项目选择器与 composer",
+      "像素星、心形、音符、波形和粉青全息丝带装饰",
+      "右下角小型舞台纪念卡只作非交互装饰"
+    ]
+  },
+  "identity": {
+    "mode": "original-fictional-adult",
+    "subject": "一名原创虚构成年虚拟歌姬",
+    "agePresentation": "clearly-adult",
+    "design": "海沫青到钴蓝的不对称发型，一侧长编发、一侧短卷发，紫青眼睛，原创耳夹麦克风与珍珠白、海沫青、珊瑚、梅紫、炭灰舞台服",
+    "restrictions": [
+      "不使用现有版权角色姓名、别名、Logo、编号或标志性服装",
+      "不使用可识别的系列头戴设备、领带、袖标或序列标记",
+      "不声称与任何歌手、角色、厂商或作品存在官方关系",
+      "不烘焙可读文字、品牌或 UI 到壁纸"
+    ]
+  },
+  "runtime": {
+    "themeId": "cyan-virtual-stage",
+    "layoutStyle": "idol",
+    "cardStyle": "glass",
+    "motifStyle": "stars",
+    "appearance": "light",
+    "rootScope": "html[data-codex-compass-theme=\"cyan-virtual-stage\"]",
+    "homeScope": "html[data-codex-compass-theme=\"cyan-virtual-stage\"][data-codex-compass-theme-page=\"home\"]",
+    "requiredRuntimeClasses": [
+      "cc-theme-shell-sidebar",
+      "cc-theme-shell-product-button",
+      "cc-theme-shell-project-row",
+      "cc-theme-shell-thread-row",
+      "cc-theme-showcase-host",
+      "cc-theme-showcase",
+      "theme-cyan-virtual-stage",
+      "layout-idol",
+      "cc-theme-showcase-brandline",
+      "cc-theme-showcase-copy",
+      "cc-theme-showcase-cards",
+      "cc-theme-showcase-card",
+      "cc-theme-showcase-composer"
+    ],
+    "nativeOwnership": {
+      "sidebarNavigation": true,
+      "projectTree": true,
+      "quickCardButtons": true,
+      "composer": true,
+      "menus": true,
+      "dialogs": true,
+      "imagePreview": true,
+      "windowControls": true
+    }
+  },
+  "copy": {
+    "brandName": "未来歌姬舞台",
+    "brandMeta": "Codex Compass",
+    "status": "灵感频道已连接",
+    "eyebrow": "未来歌姬舞台 · Codex Compass",
+    "title": "我们今天来构建什么？",
+    "subtitle": "让灵感写成代码，让每一次迭代都有节拍。",
+    "badge": "未来舞台",
+    "composerPlaceholder": "写下任务，让灵感与代码一起成形。",
+    "cards": [
+      {
+        "id": "code",
+        "title": "理清代码脉络",
+        "prompt": "梳理当前项目的核心模块、调用关系和关键数据流，指出最合适的实现切入点。",
+        "icon": "code",
+        "accent": "cyan"
+      },
+      {
+        "id": "build",
+        "title": "构建清晰功能",
+        "prompt": "基于现有架构完成一项完整功能，覆盖实现、交互、边界条件和测试。",
+        "icon": "build",
+        "accent": "pink-lavender"
+      },
+      {
+        "id": "review",
+        "title": "审查实现细节",
+        "prompt": "审查当前改动的正确性、可维护性、性能与回归风险，并补齐必要测试。",
+        "icon": "review",
+        "accent": "sky-violet"
+      },
+      {
+        "id": "repair",
+        "title": "修复问题根因",
+        "prompt": "稳定复现问题，定位根因，实施最小可靠修复并验证相关流程。",
+        "icon": "repair",
+        "accent": "mint-coral"
+      }
+    ]
+  },
+  "palette": {
+    "appearance": "light",
+    "background": "#f1fcfd",
+    "surface": "#fbffff",
+    "surfaceAlt": "#e5f7fa",
+    "text": "#153f4a",
+    "textMuted": "#62838d",
+    "border": "#b5e3e6",
+    "accent": "#10b9bf",
+    "accentDeep": "#07939f",
+    "aqua": "#c8f4f2",
+    "sky": "#8bdcf4",
+    "pink": "#f3a9d5",
+    "lavender": "#c5adf4",
+    "coral": "#ff9b99",
+    "windowControlInk": "#153943"
+  },
+  "typography": {
+    "family": [
+      "Segoe UI Variable Display",
+      "Microsoft YaHei UI",
+      "Microsoft YaHei",
+      "system-ui",
+      "sans-serif"
+    ],
+    "title": {
+      "desktopPx": 42,
+      "compactPx": 34,
+      "narrowPx": 30,
+      "weight": 760,
+      "lineHeight": 1.16,
+      "letterSpacing": 0
+    },
+    "body": {
+      "desktopPx": 14,
+      "narrowPx": 12,
+      "weight": 560,
+      "lineHeight": 1.65,
+      "letterSpacing": 0
+    },
+    "cardLabel": {
+      "desktopPx": 14,
+      "narrowPx": 12,
+      "weight": 730,
+      "lineHeight": 1.42,
+      "letterSpacing": 0
+    }
+  },
+  "layout": {
+    "desktop": {
+      "showcaseMinHeightPx": 572,
+      "showcaseRadiusPx": 8,
+      "wallpaperPosition": "78% center",
+      "copyWidth": "min(50%, 560px)",
+      "cardColumns": 4,
+      "cardMinHeightPx": 148,
+      "cardGapPx": 14
+    },
+    "compact": {
+      "breakpointMaxPx": 980,
+      "showcaseMinHeightPx": 620,
+      "wallpaperPosition": "72% center",
+      "cardColumns": 2,
+      "cardRows": 2,
+      "cardMinHeightPx": 116,
+      "cardGapPx": 10
+    },
+    "narrow": {
+      "breakpointMaxPx": 680,
+      "showcaseMinHeightPx": 640,
+      "wallpaperPosition": "76% center",
+      "cardColumns": 2,
+      "cardRows": 2,
+      "cardMinHeightPx": 108
+    },
+    "sidebar": {
+      "singleScrollOwner": "[data-app-action-sidebar-scroll]",
+      "rowOverflow": "clip",
+      "projectRowHeightPx": 31,
+      "threadRowHeightPx": 29,
+      "wheelBehavior": "滚轮事件沿 DOM 默认链路滚动侧栏主容器，项目行和任务行不创建独立滚动上下文"
+    },
+    "composer": {
+      "ownership": "native",
+      "selector": ".cc-theme-showcase-composer[data-codex-theme-native-composer=\"true\"]",
+      "radiusPx": 8,
+      "opaqueSurface": true,
+      "preserveInputAndButtons": true
+    }
+  },
+  "motifs": [
+    {
+      "name": "pixel-star",
+      "implementation": "主题 motif 的八向像素星剪裁形状",
+      "interactive": false
+    },
+    {
+      "name": "music-wave",
+      "implementation": "壁纸中的抽象波形与 composer 底部细线呼应",
+      "interactive": false
+    },
+    {
+      "name": "heart-note-sparkle",
+      "implementation": "品牌区与快捷卡的轻量心形、音符和星光装饰",
+      "interactive": false
+    },
+    {
+      "name": "stage-keepsake",
+      "implementation": "使用现有 companion 容器裁切同一壁纸形成非交互纪念卡",
+      "interactive": false,
+      "hiddenBelowPx": 1180
+    }
+  ],
+  "interactionContract": {
+    "quickCards": {
+      "count": 4,
+      "element": "button",
+      "action": "沿用运行时 fillComposer，将对应 prompt 写入原生 composer",
+      "hover": true,
+      "active": true,
+      "focusVisible": true
+    },
+    "sidebar": {
+      "nativeClickHandlersPreserved": true,
+      "nativeContextMenusPreserved": true,
+      "mainScrollContainerOnly": true,
+      "rowScrollbarsForbidden": true
+    },
+    "composer": {
+      "nativeElementRequired": true,
+      "nativeSendActionPreserved": true,
+      "nativeProjectSelectorPreserved": true,
+      "decorationsUsePointerEventsNone": true
+    }
+  },
+  "qaContract": {
+    "scope": {
+      "allSelectorsStartWithRootScope": true,
+      "homeVisualsRequireHomeScope": true,
+      "coordinateBasedDomDetection": false,
+      "mutationObserverRequired": false
+    },
+    "protectedSurfaces": [
+      "settings",
+      "menu",
+      "popover",
+      "dialog",
+      "image-preview",
+      "project-archive-confirmation",
+      "project-remove-confirmation"
+    ],
+    "protectedSurfaceRules": {
+      "mustRemainOpaque": true,
+      "mustKeepNativeEventHandlers": true,
+      "mustNotReceiveThemeSelectors": true,
+      "mustRemainAboveWallpaper": true
+    },
+    "responsive": {
+      "desktopCardGrid": "4x1",
+      "compactCardGrid": "2x2",
+      "narrowCardGrid": "2x2",
+      "noHorizontalOverflow": true,
+      "noComposerOverlap": true
+    },
+    "scroll": {
+      "noCardScrollbars": true,
+      "noProjectRowScrollbars": true,
+      "noThreadRowScrollbars": true,
+      "sidebarWheelScrollsMainContainer": true
+    },
+    "copyright": {
+      "originalAdultSubjectRequired": true,
+      "recognizableCharacterReferencesAllowed": false,
+      "namesLogosSerialMarksAllowed": false,
+      "officialAffiliationClaimsAllowed": false
+    },
+    "accessibility": {
+      "focusVisibleRequired": true,
+      "reducedMotionSupported": true,
+      "minimumTextContrastTarget": "WCAG AA",
+      "decorativeLayersNonInteractive": true
+    }
+  }
+}
