@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 1,
+  "sliceVersion": "1.0.0",
+  "id": "ink-night",
+  "baseThemeId": "ink-night",
+  "name": "紫夜限定",
+  "appearance": "dark",
+  "layoutStyle": "cosmic",
+  "cardStyle": "glass",
+  "motifStyle": "butterflies",
+  "asset": {
+    "wallpaper": "../butterfly-cosmos-wallpaper.webp",
+    "role": "pure-wallpaper",
+    "fit": "cover",
+    "position": "82% center",
+    "focusX": 0.78,
+    "focusY": 0.46,
+    "safeArea": "left",
+    "taskMode": "ambient",
+    "taskWallpaperOpacity": 9,
+    "overlayStrength": 78,
+    "identityPolicy": "Only an original fictional adult woman is permitted. Do not name, imitate, or imply any real person."
+  },
+  "conceptBreakdown": [
+    {
+      "area": "wallpaper",
+      "details": [
+        "A continuous deep-cobalt and violet cosmic stage fills the complete canvas.",
+        "The left 52 percent remains low-detail and dark enough for native Codex content.",
+        "The original fictional adult woman, hand, hair, dress, butterflies, and strongest aurora remain in the right crop-safe zone.",
+        "No text, window chrome, cards, buttons, badges, or composer are baked into the wallpaper."
+      ]
+    },
+    {
+      "area": "top-brand-bar",
+      "details": [
+        "A real horizontal Codex brand row sits above the hero copy.",
+        "The square brand mark uses cyan, violet, and pink light with a small star glyph.",
+        "Brand name, theme meta, and online status remain native text with truncation protection.",
+        "A thin cyan-to-pink light trail visually links the row without moving layout."
+      ]
+    },
+    {
+      "area": "hero-copy",
+      "details": [
+        "The main title remains a real H1 and stays on one horizontal line at desktop widths.",
+        "The title uses a restrained Chinese serif stack, pearl-white text, violet glow, and a thin aurora underline.",
+        "The supporting line is short, readable, and left aligned inside the wallpaper safe area.",
+        "At compact widths the title may wrap naturally rather than overflow or overlap the subject."
+      ]
+    },
+    {
+      "area": "butterfly-and-star-light",
+      "details": [
+        "Sparse cyan, violet, pink, and white star points are rendered as non-interactive decoration.",
+        "The existing motif node becomes a two-wing iridescent butterfly built from CSS layers.",
+        "Decorations use pointer-events none and never intercept Codex controls.",
+        "The effect is reduced to a static state when reduced motion is requested."
+      ]
+    },
+    {
+      "area": "quick-cards",
+      "details": [
+        "Exactly four real button cards are shown in one desktop row.",
+        "Each card contains the runtime icon, native title, prompt summary, index, and action indicator.",
+        "Cards use solid dark-indigo surfaces with cyan, violet, and pink highlights; text is never placed on transparent wallpaper.",
+        "Compact widths use a stable 2 by 2 grid with no card-local scrollbar."
+      ]
+    },
+    {
+      "area": "sidebar",
+      "details": [
+        "The existing Codex sidebar receives a deep-indigo continuous surface, sparse star points, and one luminous boundary line.",
+        "Native search, new-task, navigation, project, task, active-state, and account rows are preserved.",
+        "Project and task rows remain single scrolling content inside the main sidebar scroll container.",
+        "Rows never receive independent overflow modules, steppers, arrows, or scrollbars."
+      ]
+    },
+    {
+      "area": "composer",
+      "details": [
+        "The existing native Codex composer is decorated in place and is never replaced or duplicated.",
+        "Inputs remain editable, model and attachment controls remain native, and the send action retains its event listener.",
+        "The composer uses an opaque indigo surface, a cyan-violet-pink light rail, and a high-contrast send control.",
+        "Decorative pseudo-elements stay behind interactive content."
+      ]
+    },
+    {
+      "area": "operational-surfaces",
+      "details": [
+        "Menus, listboxes, Popovers, commands, settings, dialogs, project menus, and rename dialogs use fully opaque dark surfaces.",
+        "Code blocks, Diff views, terminals, and Monaco surfaces use solid near-black backgrounds.",
+        "Image preview keeps a solid near-black overlay and equal 44 by 44 download and close actions with equal 22 by 22 icons.",
+        "No generic transparent rule is allowed to leak into settings, dialogs, menus, code, or image preview controls."
+      ]
+    }
+  ],
+  "copy": {
+    "brandName": "蝶光星河",
+    "brandMeta": "Codex Compass 紫夜限定",
+    "status": "COSMIC ONLINE",
+    "eyebrow": "紫夜限定 · Codex Compass",
+    "title": "我们该构建什么？",
+    "subtitle": "让灵感穿过星夜，把下一段代码写得清晰可靠。",
+    "composerPlaceholder": "随心输入，让灵感陪你一起写代码。",
+    "cards": [
+      {
+        "icon": "code",
+        "title": "探索并理解代码",
+        "description": "绘制模块、调用链与风险区域。",
+        "prompt": "绘制项目的代码星图。请梳理核心模块、调用链和高风险区域，指出最佳切入点。"
+      },
+      {
+        "icon": "build",
+        "title": "构建新功能或工具",
+        "description": "把闪光想法落成可靠功能。",
+        "prompt": "把闪光想法落成可靠功能。请完成设计、实现、测试和边界验证。"
+      },
+      {
+        "icon": "review",
+        "title": "审查代码并提出建议",
+        "description": "沿实现轨迹检查缺陷与回归。",
+        "prompt": "沿着实现轨迹检查风险。请审查缺陷、回归点、性能问题和缺失测试。"
+      },
+      {
+        "icon": "repair",
+        "title": "修复问题和失败",
+        "description": "定位暗处问题并补齐验证。",
+        "prompt": "找出藏在暗处的问题。请复现故障、定位根因并完成可靠修复。"
+      }
+    ]
+  },
+  "palette": {
+    "background": "#090d24",
+    "surface": "#171b38",
+    "surfaceAlt": "#22264d",
+    "surfaceRaised": "#2b2b59",
+    "text": "#f8f5ff",
+    "textMuted": "#c8c0df",
+    "border": "#5b568c",
+    "accent": "#bd7cff",
+    "accentDeep": "#7545bd",
+    "cyan": "#68e5ff",
+    "pink": "#ff8bd8",
+    "shadow": "#020515",
+    "danger": "#d43b67"
+  },
+  "typography": {
+    "ui": [
+      "Inter",
+      "Segoe UI",
+      "Microsoft YaHei",
+      "system-ui",
+      "sans-serif"
+    ],
+    "display": [
+      "Noto Serif SC",
+      "Microsoft YaHei",
+      "Georgia",
+      "serif"
+    ],
+    "title": {
+      "desktopPx": 58,
+      "compactPx": 34,
+      "weight": 760,
+      "lineHeight": 1.12,
+      "letterSpacing": 0,
+      "desktopWhiteSpace": "nowrap",
+      "compactWhiteSpace": "normal"
+    },
+    "controlLetterSpacing": 0
+  },
+  "layout": {
+    "desktop": {
+      "breakpointMinPx": 921,
+      "heroMinHeightPx": 548,
+      "copyWidth": "min(52%, 600px)",
+      "cardsColumns": 4,
+      "cardMinHeightPx": 164,
+      "titleFlow": "horizontal",
+      "wallpaperPosition": "82% center"
+    },
+    "compact": {
+      "breakpointMaxPx": 920,
+      "heroMinHeightPx": 620,
+      "cardsColumns": 2,
+      "cardRows": 2,
+      "cardMinHeightPx": 108,
+      "titleFlow": "wrap",
+      "wallpaperPosition": "76% center"
+    },
+    "narrow": {
+      "breakpointMaxPx": 620,
+      "heroMinHeightPx": 680,
+      "cardsColumns": 2,
+      "cardRows": 2,
+      "wallpaperPosition": "72% center"
+    },
+    "cropSafety": {
+      "nativeContentX": "0%-52%",
+      "transitionX": "45%-62%",
+      "subjectX": "62%-88%",
+      "subjectY": "16%-72%",
+      "faceY": "20%-52%",
+      "handY": "30%-70%",
+      "edgeInsetMin": "8%"
+    }
+  },
+  "componentContract": {
+    "brand": ".cc-theme-showcase-brandline",
+    "hero": ".cc-theme-showcase.theme-ink-night.layout-cosmic",
+    "title": ".cc-theme-showcase-title",
+    "quickCardGrid": ".cc-theme-showcase-cards",
+    "quickCard": ".cc-theme-showcase-card",
+    "motif": ".cc-theme-showcase-motif",
+    "sidebar": ".cc-theme-shell-sidebar",
+    "sidebarScroll": "[data-app-action-sidebar-scroll]",
+    "projectRow": ".cc-theme-shell-project-row",
+    "threadRow": ".cc-theme-shell-thread-row",
+    "nativeComposer": ".cc-theme-showcase-composer.cc-theme-shell-composer",
+    "themeScope": "html[data-codex-compass-theme=\"ink-night\"]",
+    "showcaseScope": "html[data-codex-compass-showcase=\"ink-night\"]"
+  },
+  "interactionContract": {
+    "quickCardsFillNativeComposer": true,
+    "nativeNavigationPreserved": true,
+    "nativeProjectActionsPreserved": true,
+    "nativeComposerPreserved": true,
+    "decorationsReceivePointerEvents": false,
+    "sidebarWheelTarget": "main-sidebar-scroll-container",
+    "localRowScrollbars": false
+  },
+  "surfaceProtection": {
+    "opaque": [
+      "menu",
+      "listbox",
+      "popover",
+      "dropdown-menu",
+      "context-menu",
+      "command-palette",
+      "settings",
+      "dialog",
+      "alert-dialog",
+      "project-menu",
+      "rename-dialog",
+      "code-block",
+      "diff",
+      "terminal",
+      "monaco",
+      "image-preview-overlay",
+      "image-preview-actions",
+      "image-preview-caption"
+    ],
+    "imagePreview": {
+      "dialogCanvas": "transparent",
+      "overlay": "#050716",
+      "actionSizePx": 44,
+      "iconSizePx": 22,
+      "actionSurface": "#ffffff",
+      "actionForeground": "#11162f"
+    },
+    "forbidden": [
+      "global transparent dialog rules",
+      "generic content wildcard selectors",
+      "coordinate-based control detection",
+      "card-local overflow auto",
+      "row-local overflow auto",
+      "replacement composer DOM"
+    ]
+  },
+  "accessibility": {
+    "minimumBodyContrast": 7,
+    "minimumMutedContrast": 4.5,
+    "focusRing": "#68e5ff",
+    "reducedMotion": true,
+    "darkAppearanceRequired": true,
+    "windowControls": "Use Codex dark appearance so native Windows caption glyphs remain visible."
+  },
+  "qa": {
+    "requiredTests": [
+      "all theme selectors are scoped to ink-night",
+      "background, surface, and muted text pass dark contrast thresholds",
+      "exactly four real quick-card definitions exist",
+      "desktop renders four columns",
+      "compact renders a stable 2 by 2 card grid",
+      "title is horizontal on desktop and wraps on compact widths",
+      "cards and sidebar rows do not create local scrollbars",
+      "native composer DOM remains unchanged",
+      "menus, Popovers, settings, dialogs, code, Monaco, and image preview controls remain opaque"
+    ],
+    "manualRegression": [
+      "open a new task page",
+      "click every quick card and confirm the native composer receives the prompt",
+      "scroll the sidebar while the pointer is over a project or task row",
+      "open model menu and attachment Popover",
+      "open settings and its confirmation dialog",
+      "open project rename, archive, and remove flows",
+      "open code, Diff, terminal, and Monaco surfaces",
+      "open an image and compare download and close action geometry",
+      "check Windows minimize, maximize, and close contrast after restarting Codex",
+      "repeat at desktop, compact, 16:10, 4:3, and ultrawide dimensions"
+    ]
+  },
+  "integration": {
+    "stylesheet": "ink-night.css",
+    "loadAfterRuntimeBaseCss": true,
+    "mutatesDom": false,
+    "requiresExistingThemeDefinition": true,
+    "existingWallpaperAsset": "../butterfly-cosmos-wallpaper.webp",
+    "notes": [
+      "The Rust runtime must load this stylesheet after its base theme CSS.",
+      "Theme copy may be mapped into the existing ink-night showcase fields during integration.",
+      "No new wallpaper or portrait asset is required for this slice."
+    ]
+  }
+}
