@@ -1,0 +1,401 @@
+{
+  "$schema": "codex-compass-theme-concept/v1",
+  "id": "starlight-stage",
+  "name": "黑金茉莉舞台",
+  "displayName": "舞台黑金",
+  "implementationVersion": "2.2.0",
+  "status": "implementation-slice",
+  "source": {
+    "conceptImage": "codex-clipboard-c46f1bed-320c-4fc2-ad1d-87f4b1a8ff75.png",
+    "wallpaperAsset": "../black-gold-stage-wallpaper.webp",
+    "wallpaperDimensions": {
+      "width": 2560,
+      "height": 1440,
+      "aspectRatio": "16:9"
+    },
+    "generationGuide": "background-generation-prompts.md#skin-08-舞台黑金人物主题",
+    "referenceContract": "概念图只用于色板、光线、构图和层级拆解；运行时背景是无 UI、无文字、无标识的独立纯壁纸。",
+    "rights": {
+      "subject": "原创虚构成年男性",
+      "identityMode": "original-fictional-adult",
+      "celebrityLikeness": false,
+      "copyrightedCharacter": false,
+      "distributionNote": "不得把概念图中的真人姓名、粉丝称呼、签名、编号、徽章或可识别品牌写入发行主题。"
+    }
+  },
+  "runtimeDefinition": {
+    "id": "starlight-stage",
+    "name": "黑金茉莉舞台",
+    "description": "近黑舞台、香槟金灯光、茉莉花、复古麦克风与原创成年男性主视觉。",
+    "author": "Codex Compass",
+    "version": "2.2.0",
+    "license": "AI-generated original asset",
+    "builtin": true,
+    "decorativeStyle": "constellation",
+    "wallpaperAsset": "black-gold-stage-wallpaper.webp",
+    "showcase": {
+      "enabled": true,
+      "eyebrow": "黑金茉莉舞台 · Codex Compass",
+      "title": "我们一起创造什么？",
+      "subtitle": "让灵感与代码同频，在舞台灯光下完成下一项任务。",
+      "heroImageSource": "wallpaper",
+      "portraitImageSource": null,
+      "showCards": true,
+      "cards": [
+        {
+          "title": "探索代码节奏",
+          "prompt": "请探索当前项目的代码结构、关键调用链和潜在风险，整理清晰结论并指出最值得优先处理的方向。",
+          "icon": "code",
+          "conceptRole": "探索并理解代码"
+        },
+        {
+          "title": "构建舞台功能",
+          "prompt": "请基于当前项目规范实现目标功能，保持交互完整、边界清晰，并补充与改动风险匹配的测试。",
+          "icon": "build",
+          "conceptRole": "构建新功能、应用或工具"
+        },
+        {
+          "title": "审查实现表现",
+          "prompt": "请审查当前实现，优先指出行为缺陷、回归风险、可访问性问题和缺失测试，并给出可执行修改建议。",
+          "icon": "review",
+          "conceptRole": "审查代码并提出修改建议"
+        },
+        {
+          "title": "修复幕后问题",
+          "prompt": "请复现并定位当前问题的根因，完成修复、回归测试和结果说明，避免只处理表面现象。",
+          "icon": "repair",
+          "conceptRole": "修复问题和失败"
+        }
+      ]
+    },
+    "presentation": {
+      "layoutStyle": "stage",
+      "cardStyle": "solid",
+      "motifStyle": "jasmine",
+      "headerBadge": "茉莉舞台",
+      "heroPosition": "far-right",
+      "overlayStrength": 78,
+      "taskWallpaperOpacity": 8,
+      "taskMode": "ambient"
+    },
+    "visual": {
+      "accent": "#d8b66a",
+      "accentSoft": "#3a2f1b",
+      "background": "#080806",
+      "surface": "#15130f",
+      "surfaceAlt": "#1d1a14",
+      "text": "#f5ead2",
+      "textMuted": "#c8b997",
+      "border": "#6d5a37",
+      "sidebarOpacity": 98,
+      "contentOpacity": 97,
+      "wallpaperOpacity": 68,
+      "blurPx": 12,
+      "radiusPx": 8,
+      "fontScale": 100,
+      "fontFamily": "system",
+      "wallpaperFit": "cover"
+    }
+  },
+  "conceptBreakdown": {
+    "overallMood": [
+      "近黑、成熟、克制的电影舞台，不使用蓝紫霓虹替代黑金。",
+      "香槟金只承担轮廓光、边框、图标和少量状态强调，不能把整个界面染成金色。",
+      "深色表面必须保留层次，避免纯黑死区和透明蒙版导致的可读性下降。"
+    ],
+    "wallpaper": {
+      "scene": "连续的近黑音乐舞台，右侧为原创虚构成年男性歌者，黑色丝绒礼服、象牙色真丝衬衫、自然靠近下巴的手势。",
+      "lighting": "暖金主光与细窄轮廓光，背景有少量暖色失焦舞台灯和克制的红棕反射。",
+      "props": [
+        "右侧复古金属麦克风",
+        "右侧与右下角白色茉莉花及深绿叶片",
+        "稀疏香槟金星点",
+        "底部横向抽象声波粒子",
+        "低对比黑色漆面与丝绒材质"
+      ],
+      "safeArea": {
+        "nativeContent": "x=0%-52%，保持低信息、低局部对比和连续黑色舞台环境",
+        "transition": "x=45%-62%，用暖雾和暗部自然过渡，不形成左右拼板",
+        "subject": "x=62%-88%，y=16%-72%",
+        "face": "y=20%-52%",
+        "hand": "y=30%-70%",
+        "edgeProtection": "关键人物、麦克风和花材距任意边缘至少 8%"
+      },
+      "forbidden": [
+        "任何烘焙进背景的 Codex 菜单、卡片、输入框或窗口边框",
+        "可读文字、签名、姓名、粉丝称呼、编号、徽章和品牌标识",
+        "名人或私人个体肖像",
+        "第二个人物、畸形手、裁切脸部或手部"
+      ]
+    },
+    "realUiLayers": {
+      "brandLine": {
+        "structure": "真实 cc-theme-showcase-brandline，包含圆形星光标记、主题名、副标题和右侧状态徽章。",
+        "visual": "象牙白衬线标题、香槟金细边、近黑不透明底，不把品牌文字画入壁纸。"
+      },
+      "heroCopy": {
+        "eyebrow": "黑金茉莉舞台 · Codex Compass",
+        "title": "我们一起创造什么？",
+        "subtitle": "让灵感与代码同频，在舞台灯光下完成下一项任务。",
+        "typography": "标题使用 Georgia / Noto Serif SC / Microsoft YaHei 衬线优先栈，正文使用系统无衬线；字距固定为 0。",
+        "placement": "桌面位于左侧安全区，紧凑窗口改为全宽并提高暗色覆盖，不遮挡人物脸部。"
+      },
+      "quickCards": {
+        "count": 4,
+        "interaction": "四张卡均为真实 button，点击后继续使用 theme_studio.rs 原生 fillComposer 写入 composer。",
+        "desktop": "四列等宽，圆形金色线框图标、居中标题、简短说明和真实箭头焦点反馈。",
+        "compact": "两列两行，改为横向图标-文案-箭头结构；隐藏次要说明，保持全部四张卡可见。",
+        "scrolling": "卡片不得创建 overflow:auto、overflow:scroll 或独立滚动条。"
+      },
+      "sidebar": {
+        "brand": "沿用真实 Codex 产品按钮和搜索按钮，仅替换为黑金层级。",
+        "navigation": "新建任务使用高对比香槟金按钮，其余原生导航保持近黑底和金色图标。",
+        "projectsAndTasks": "沿用 data-app-action-sidebar-project-row / thread-row 识别结果；单行省略，不新增滚动模块和上下三角。",
+        "scrolling": "项目行和任务行只允许内容裁切，滚轮仍由现有运行时转发到主侧栏滚动容器。",
+        "recognition": "CSS 不使用坐标、nth-child、模糊 class 子串或 DOM 文本识别。"
+      },
+      "composer": {
+        "ownership": "原生 composer-surface-chrome，不克隆、不替换、不移动事件监听器。",
+        "visual": "近黑实色表面、香槟金细边、象牙白输入文字和清晰按钮悬停状态。",
+        "interaction": "不覆盖附件、模型选择、语音、停止和发送按钮，不使用可接收鼠标事件的装饰层。"
+      },
+      "decorations": {
+        "record": "使用现有 cc-theme-showcase-motif 渲染小型唱片纹理，不依赖图片坐标识别。",
+        "waveform": "使用 showcase 伪元素渲染低透明度抽象声波，pointer-events:none。",
+        "jasmine": "主要由纯背景中的真实花材承担，不用 DOM 贴纸覆盖交互区。",
+        "polaroid": "复用只读 companion 装饰并在中小窗口隐藏，绝不覆盖 composer。"
+      }
+    }
+  },
+  "palette": {
+    "tokens": {
+      "background": {
+        "value": "#080806",
+        "role": "应用与舞台基底"
+      },
+      "charcoal": {
+        "value": "#10110f",
+        "role": "侧栏和顶栏"
+      },
+      "surface": {
+        "value": "#15130f",
+        "role": "菜单、对话框和主要操作表面"
+      },
+      "surfaceRaised": {
+        "value": "#1d1a14",
+        "role": "卡片、设置控件和代码区辅助表面"
+      },
+      "accent": {
+        "value": "#d8b66a",
+        "role": "香槟金边框、图标和焦点"
+      },
+      "accentBright": {
+        "value": "#efd28d",
+        "role": "高优先级图标和状态"
+      },
+      "text": {
+        "value": "#f5ead2",
+        "role": "主文字"
+      },
+      "textMuted": {
+        "value": "#c8b997",
+        "role": "次级文字"
+      },
+      "border": {
+        "value": "#6d5a37",
+        "role": "操作表面边框"
+      },
+      "oxblood": {
+        "value": "#6f2e2b",
+        "role": "极少量红棕舞台反射，不用于正文"
+      }
+    },
+    "contrastTargets": {
+      "normalText": 4.5,
+      "largeText": 3,
+      "primaryTextPreferred": 7,
+      "focusIndicator": 3,
+      "requiredPairs": [
+        {
+          "foreground": "#f5ead2",
+          "background": "#080806",
+          "purpose": "页面主文字"
+        },
+        {
+          "foreground": "#f5ead2",
+          "background": "#15130f",
+          "purpose": "菜单与对话框文字"
+        },
+        {
+          "foreground": "#c8b997",
+          "background": "#15130f",
+          "purpose": "次级说明"
+        },
+        {
+          "foreground": "#efd28d",
+          "background": "#15130f",
+          "purpose": "强调图标与状态"
+        },
+        {
+          "foreground": "#17120a",
+          "background": "#d8b66a",
+          "purpose": "金色主操作按钮"
+        }
+      ]
+    }
+  },
+  "layoutContract": {
+    "desktop": {
+      "breakpoint": ">= 921px",
+      "showcaseMinHeight": 590,
+      "heroCopyWidth": "min(49%, 540px)",
+      "cardGrid": "4 columns x 1 row",
+      "cardMinHeight": 146,
+      "wallpaperPosition": "center right",
+      "companionVisible": true,
+      "recordMotifVisible": true
+    },
+    "medium": {
+      "breakpoint": "621px-920px",
+      "showcaseMinHeight": 620,
+      "cardGrid": "2 columns x 2 rows",
+      "cardMinHeight": 104,
+      "wallpaperPosition": "66% center",
+      "companionVisible": false,
+      "recordMotifVisible": false
+    },
+    "compact": {
+      "breakpoint": "<= 620px",
+      "showcaseMinHeight": 680,
+      "cardGrid": "2 columns x 2 rows",
+      "cardMinHeight": 96,
+      "wallpaperPosition": "69% top",
+      "heroCopyWidth": "100%",
+      "secondaryCardDescriptions": "hidden",
+      "statusBadge": "hidden"
+    },
+    "stability": [
+      "卡片使用稳定 grid track，悬停只允许 1px 位移，不改变尺寸。",
+      "标题在固定断点切换字号，不使用 viewport 字号缩放。",
+      "所有文字容器允许换行或省略，最长词不能撑破卡片。",
+      "侧栏项目和任务行固定单行高度，不生成内部滚动容器。"
+    ]
+  },
+  "appearanceContract": {
+    "mode": "dark",
+    "codexAppearance": "应用主题时必须由现有运行时强制同步 Codex 外观为 dark。",
+    "windowsDwm": "继续使用现有 DWM 沉浸式深色标题栏同步；本 CSS 只为可识别的网页窗口按钮提供浅色前景。",
+    "retryPolicy": "外观同步、重启后重放和周期性 DWM 下发由 theme_studio.rs 负责，本切片不实现计时器。",
+    "invalidColorFallback": "运行时明暗判断必须使用 background，非法值再回退 surface；本主题提供的两者均为有效十六进制深色。"
+  },
+  "scopeContract": {
+    "rootSelector": "html[data-codex-compass-theme=\"starlight-stage\"]",
+    "allowedRuntimeHooks": [
+      ".cc-theme-shell-sidebar",
+      ".cc-theme-shell-product-button",
+      ".cc-theme-shell-search-button",
+      ".cc-theme-shell-new-task",
+      ".cc-theme-shell-nav-row",
+      ".cc-theme-shell-project-row",
+      ".cc-theme-shell-thread-row",
+      ".cc-theme-shell-account-row",
+      ".cc-theme-shell-topbar",
+      ".cc-theme-shell-sessionbar",
+      ".cc-theme-shell-window-control",
+      ".cc-theme-showcase-host",
+      ".cc-theme-showcase.theme-starlight-stage.layout-stage",
+      ".cc-theme-showcase-brandline",
+      ".cc-theme-showcase-copy",
+      ".cc-theme-showcase-cards",
+      ".cc-theme-showcase-card",
+      ".cc-theme-showcase-companion",
+      ".cc-theme-showcase-motif",
+      ".cc-theme-showcase-composer"
+    ],
+    "forbiddenRecognition": [
+      "getBoundingClientRect",
+      "clientX/clientY",
+      "屏幕坐标猜测",
+      "nth-child 菜单识别",
+      "模糊 class*=content 布局覆盖",
+      "基于中文文案替换原生节点"
+    ],
+    "observerRule": "本切片不创建 MutationObserver；现有运行时的类和 dataset 写入必须继续保持幂等。"
+  },
+  "surfaceProtection": {
+    "operationalSurfaces": {
+      "selectors": [
+        "[role=menu]",
+        "[role=listbox]",
+        "[data-slot=popover-content]",
+        "[data-slot=dropdown-menu-content]",
+        "[data-slot=context-menu-content]",
+        "[data-slot=command]",
+        "[data-slot=dialog-content]",
+        "[data-slot=alert-dialog-content]",
+        "[role=alertdialog]"
+      ],
+      "contract": "仅设置不透明背景、文字、边框、阴影和 opacity；禁止修改 position、inset、display、尺寸或事件。"
+    },
+    "settings": {
+      "contract": "设置对话框、设置侧栏、内容区、输入框、下拉框和开关保持不透明深色表面；不得注入舞台品牌、唱片、卡片或侧栏结构。"
+    },
+    "codeAndTerminal": {
+      "contract": "pre、code、Monaco、Diff 和终端使用 #0b0c0b 实色背景，禁用背景模糊和透明度。"
+    },
+    "imagePreview": {
+      "contract": "图片预览对话框显式排除在通用 dialog 实色规则之外，只保持透明全屏容器；不修改保存/关闭按钮的原生尺寸、位置、图标或事件。"
+    },
+    "projectMenus": {
+      "contract": "不重排项目菜单，不注入 Escape，不改写归档、移除、重命名的 DOM 和事件监听器。"
+    },
+    "overlays": {
+      "contract": "对话框蒙版只设置 rgba(0,0,0,0.68)，弹层关闭后由原生状态移除；主题不创建永久蒙版。"
+    }
+  },
+  "interactionContract": {
+    "quickCards": "必须保留四个 button 及原生点击写入 composer 的行为。",
+    "composer": "必须保留输入、附件、模型选择、语音、停止和发送操作。",
+    "sidebar": "项目/任务行上滚轮继续滚动主侧栏，不在行内消费滚动。",
+    "menus": "菜单、弹窗、项目归档/移除/重命名和图片预览保持原生事件。",
+    "pointerEvents": "唱片、声波、茉莉和 companion 装饰均不得接收鼠标事件。",
+    "keyboard": "快捷卡保留 focus-visible 轮廓；Tab 顺序由原生 DOM 决定。"
+  },
+  "qa": {
+    "automated": [
+      "CSS 每个选择器都必须包含精确主题根作用域。",
+      "CSS 禁止 overflow:auto、overflow:scroll、坐标识别和模糊 class 子串布局选择器。",
+      "JSON 必须提供且仅提供四张真实快捷卡，图标依次为 code/build/review/repair。",
+      "关键前景/背景组合对比度达到 WCAG AA，主文字优先达到 7:1。",
+      "桌面 1440x900 下四卡同排且全部可见。",
+      "紧凑 560x900 下四卡为稳定 2x2 且无水平溢出。",
+      "快捷卡点击事件不被装饰层拦截。",
+      "菜单、设置、Popover、代码块保持不透明。",
+      "图片预览容器仍透明，原生操作按钮布局不被本主题改写。"
+    ],
+    "manual": [
+      "打开新任务页面，对照概念图检查黑金层级、品牌栏、标题、四卡、唱片、声波和右侧人物构图。",
+      "切换到普通任务页，确认壁纸仅为低透明 ambient，不降低消息、Diff、代码和终端可读性。",
+      "打开设置的常规、外观、编辑器、MCP 与插件和高级页面，确认无舞台装饰泄漏。",
+      "依次打开模型菜单、附件 Popover、命令面板、项目菜单、重命名、归档、移除和二次确认。",
+      "打开图片预览，确认图片可见且保存/关闭按钮维持当前原生修复结果。",
+      "在侧栏项目行与任务行上滚轮，确认滚动主侧栏且没有小方块滚动条、上下三角或抽动。",
+      "重启 Codex 后确认深色外观和 Windows 右上角窗口按钮仍具备可靠对比度。",
+      "验证 1600x1000、1280x800、920x900、620x900 和 420x840 视口无文字覆盖和控件越界。"
+    ],
+    "regressionGates": [
+      "不得回归 ENFP 主题的侧栏幂等与滚轮转发修复。",
+      "不得回归设置页误识别和透明弹层修复。",
+      "不得回归图片预览保存/关闭按钮尺寸与几何居中修复。",
+      "不得回归项目归档、移除、重命名的原生事件保留。",
+      "不得回归 Windows DWM 外观同步。"
+    ]
+  },
+  "integrationNotes": [
+    "主分支集成时读取本 JSON 的 runtimeDefinition，替换 starlight-stage 旧蓝紫色板和旧文案。",
+    "将 starlight-stage.css 作为主题专属 CSS 追加在通用 runtime CSS 之后。",
+    "不要把 CSS 或 JSON 内联成新的超大 Rust 字符串；优先 include_str! 或统一概念资源加载器。",
+    "现有 black-gold-stage-wallpaper.webp 已满足纯背景、原创成年人物和 2560x1440 要求，不需要重新生图。",
+    "集成后必须把本测试加入总测试命令，但本切片不修改 package.json。"
+  ]
+}

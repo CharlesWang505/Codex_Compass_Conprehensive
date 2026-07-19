@@ -1,0 +1,894 @@
+/*
+ * Starlight Stage / 舞台黑金
+ *
+ * Integration contract:
+ * - The runtime owns DOM discovery, event listeners, wallpaper injection, and
+ *   appearance synchronization.
+ * - This slice only styles semantic classes and data attributes already added
+ *   by theme_studio.rs.
+ * - Every selector is rooted at the exact theme id so settings, menus, image
+ *   preview, code blocks, and other themes cannot inherit layout rules.
+ */
+
+:where(html[data-codex-compass-theme="starlight-stage"]) {
+  color-scheme: dark;
+  --cc-theme-accent: #d8b66a;
+  --cc-theme-accent-soft: #3a2f1b;
+  --cc-theme-bg: #080806;
+  --cc-theme-surface: #15130f;
+  --cc-theme-surface-alt: #1d1a14;
+  --cc-theme-text: #f5ead2;
+  --cc-theme-muted: #c8b997;
+  --cc-theme-border: #6d5a37;
+  --cc-stage-black: #080806;
+  --cc-stage-charcoal: #10110f;
+  --cc-stage-surface: #171510;
+  --cc-stage-surface-raised: #201c15;
+  --cc-stage-gold: #d8b66a;
+  --cc-stage-gold-bright: #efd28d;
+  --cc-stage-ivory: #f5ead2;
+  --cc-stage-muted: #c8b997;
+  --cc-stage-border: #6d5a37;
+  --cc-stage-oxblood: #6f2e2b;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-sidebar {
+  color: var(--cc-stage-ivory) !important;
+  border-right-color: rgba(216, 182, 106, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(17, 18, 16, 0.98), rgba(9, 10, 9, 0.98)) !important;
+  box-shadow:
+    8px 0 28px rgba(0, 0, 0, 0.34),
+    inset -1px 0 rgba(239, 210, 141, 0.05) !important;
+  backdrop-filter: none !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-sidebar::before {
+  background:
+    linear-gradient(138deg, rgba(216, 182, 106, 0.09), transparent 28%),
+    linear-gradient(18deg, transparent 82%, rgba(111, 46, 43, 0.08) 82%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  opacity: 0.82;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-sidebar::after {
+  top: 84px;
+  right: 0;
+  width: 1px;
+  height: min(220px, 30vh);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(239, 210, 141, 0.78),
+    rgba(111, 46, 43, 0.42),
+    transparent
+  );
+  opacity: 0.72;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-product-button {
+  min-height: 58px !important;
+  padding: 9px 38px 9px 44px !important;
+  color: var(--cc-stage-ivory) !important;
+  border-color: transparent !important;
+  border-bottom-color: rgba(216, 182, 106, 0.2) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: Georgia, "Noto Serif SC", "Microsoft YaHei", serif !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-product-button::before {
+  content: "✦";
+  left: 10px;
+  width: 26px;
+  height: 26px;
+  color: var(--cc-stage-gold-bright);
+  border-color: rgba(216, 182, 106, 0.38);
+  border-radius: 50%;
+  background: rgba(216, 182, 106, 0.08);
+  font-size: 13px;
+  box-shadow: 0 0 16px rgba(216, 182, 106, 0.12);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-product-button::after {
+  left: 44px;
+  right: 34px;
+  bottom: 7px;
+  color: rgba(200, 185, 151, 0.82);
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-search-button {
+  color: var(--cc-stage-gold-bright) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-search-button:hover {
+  color: #fff4d9 !important;
+  background: rgba(216, 182, 106, 0.12) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-new-task {
+  min-height: 38px !important;
+  color: #17120a !important;
+  border-color: rgba(239, 210, 141, 0.62) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(135deg, #efd28d, #c79d52) !important;
+  box-shadow:
+    0 7px 18px rgba(0, 0, 0, 0.26),
+    inset 0 1px rgba(255, 255, 255, 0.34) !important;
+  font-weight: 760 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-new-task:hover {
+  color: #100d08 !important;
+  border-color: #f2da9d !important;
+  background: linear-gradient(135deg, #f4dca1, #d4ad63) !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-nav-row {
+  min-height: 32px !important;
+  color: rgba(245, 234, 210, 0.9) !important;
+  border-color: transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  font-size: 12.5px !important;
+  font-weight: 560 !important;
+  transform: none !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-nav-row:hover {
+  color: #fff4d9 !important;
+  border-color: rgba(216, 182, 106, 0.18) !important;
+  background: rgba(216, 182, 106, 0.09) !important;
+  transform: none !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-nav-row svg {
+  color: var(--cc-stage-gold) !important;
+  filter: drop-shadow(0 2px 5px rgba(216, 182, 106, 0.14));
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-active-row {
+  color: #fff4d9 !important;
+  border-color: rgba(216, 182, 106, 0.3) !important;
+  background: linear-gradient(90deg, rgba(216, 182, 106, 0.16), rgba(111, 46, 43, 0.06)) !important;
+  box-shadow: inset 2px 0 var(--cc-stage-gold) !important;
+  font-weight: 680 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-group-heading {
+  margin-top: 11px !important;
+  padding-top: 9px !important;
+  color: var(--cc-stage-gold-bright) !important;
+  border-top-color: rgba(216, 182, 106, 0.16) !important;
+  font-size: 10.5px !important;
+  font-weight: 760 !important;
+  letter-spacing: 0 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-project-row,
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-thread-row {
+  box-sizing: border-box !important;
+  min-height: 30px !important;
+  max-height: 32px !important;
+  overflow: hidden !important;
+  border-radius: 6px !important;
+  scrollbar-width: none !important;
+  line-height: 1.25 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-project-row {
+  color: rgba(245, 234, 210, 0.94) !important;
+  font-weight: 670 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-thread-row {
+  margin-left: 10px !important;
+  color: rgba(200, 185, 151, 0.88) !important;
+  border-left-color: rgba(216, 182, 106, 0.2) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 520 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-project-row button,
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-project-row [role="button"],
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-thread-row button,
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-thread-row [role="button"] {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: inherit !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-account-row {
+  color: var(--cc-stage-ivory) !important;
+  border-color: rgba(216, 182, 106, 0.22) !important;
+  background: rgba(29, 26, 20, 0.96) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-topbar,
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-sessionbar {
+  color: var(--cc-stage-ivory) !important;
+  border-bottom-color: rgba(216, 182, 106, 0.18) !important;
+  background: rgba(13, 14, 12, 0.96) !important;
+  backdrop-filter: none !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-topbar::after {
+  color: var(--cc-stage-gold-bright);
+  border-color: rgba(216, 182, 106, 0.26);
+  background:
+    radial-gradient(circle at 10px 50%, var(--cc-stage-gold) 0 3px, transparent 3.5px),
+    rgba(21, 19, 15, 0.98);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-window-control {
+  color: #f8eed8 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-shell-window-control:hover {
+  color: #ffffff !important;
+  background: rgba(216, 182, 106, 0.13) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase-host {
+  min-height: 590px !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage {
+  min-height: 590px;
+  grid-template-rows: minmax(324px, 1fr) auto;
+  gap: 0;
+  padding: 58px 28px 26px;
+  overflow: hidden;
+  color: var(--cc-stage-ivory);
+  border: 1px solid rgba(216, 182, 106, 0.42);
+  border-radius: 8px;
+  background-color: var(--cc-stage-black);
+  background-position: center right;
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.58),
+    0 0 34px rgba(216, 182, 106, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage::before {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 8, 6, 0.99) 0%,
+      rgba(8, 8, 6, 0.97) 36%,
+      rgba(8, 8, 6, 0.78) 52%,
+      rgba(8, 8, 6, 0.24) 72%,
+      transparent 100%
+    );
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: 3%;
+  bottom: 151px;
+  width: 50%;
+  height: 32px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(239, 210, 141, 0.76), transparent);
+  clip-path: polygon(
+    0 49%,
+    4% 46%,
+    8% 54%,
+    12% 38%,
+    16% 64%,
+    20% 28%,
+    24% 71%,
+    28% 42%,
+    32% 57%,
+    36% 20%,
+    40% 82%,
+    44% 34%,
+    48% 68%,
+    52% 24%,
+    56% 76%,
+    60% 39%,
+    64% 61%,
+    68% 31%,
+    72% 70%,
+    76% 42%,
+    80% 58%,
+    84% 37%,
+    88% 62%,
+    92% 45%,
+    96% 54%,
+    100% 49%,
+    100% 53%,
+    0 53%
+  );
+  filter: drop-shadow(0 0 8px rgba(216, 182, 106, 0.44));
+  opacity: 0.48;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-brandline {
+  top: 16px;
+  left: 24px;
+  right: 24px;
+  gap: 10px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-brandmark {
+  width: 30px;
+  height: 30px;
+  color: transparent;
+  border-color: rgba(216, 182, 106, 0.44);
+  border-radius: 50%;
+  background: rgba(21, 19, 15, 0.88);
+  box-shadow:
+    0 0 0 4px rgba(216, 182, 106, 0.05),
+    0 6px 16px rgba(0, 0, 0, 0.3);
+  font-size: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-brandmark::before {
+  content: "✦";
+  color: var(--cc-stage-gold-bright);
+  font-size: 14px;
+  line-height: 1;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-brandname {
+  color: var(--cc-stage-ivory);
+  font-family: Georgia, "Noto Serif SC", "Microsoft YaHei", serif;
+  font-size: 13px;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-brandmeta {
+  color: rgba(200, 185, 151, 0.82);
+  font-size: 9.5px;
+  letter-spacing: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-status {
+  padding: 6px 10px 6px 20px;
+  color: var(--cc-stage-gold-bright);
+  border: 1px dashed rgba(216, 182, 106, 0.5);
+  border-radius: 999px;
+  background: rgba(15, 14, 12, 0.86);
+  font-size: 10px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-status::before {
+  background: #d8b66a;
+  box-shadow: 0 0 0 3px rgba(216, 182, 106, 0.14);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-copy {
+  width: min(49%, 540px);
+  align-self: start;
+  margin-top: 48px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-eyebrow {
+  width: fit-content;
+  margin-bottom: 15px;
+  padding: 0 0 7px;
+  color: var(--cc-stage-gold-bright);
+  border: 0;
+  border-bottom: 1px solid rgba(216, 182, 106, 0.42);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: Georgia, "Noto Serif SC", "Microsoft YaHei", serif;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-title {
+  max-width: 540px;
+  margin: 0;
+  color: #fff3d8;
+  font-family: Georgia, "Noto Serif SC", "Microsoft YaHei", serif;
+  font-size: 44px;
+  line-height: 1.14;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-shadow: 0 8px 26px rgba(0, 0, 0, 0.78);
+  text-wrap: balance;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-subtitle {
+  max-width: 470px;
+  margin: 15px 0 0;
+  color: rgba(245, 234, 210, 0.82);
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-badge {
+  margin-top: 15px;
+  padding: 6px 10px;
+  color: var(--cc-stage-gold-bright);
+  border-color: rgba(216, 182, 106, 0.38);
+  border-radius: 999px;
+  background: rgba(21, 19, 15, 0.8);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-motif {
+  top: 74px;
+  right: 28px;
+  width: 92px;
+  border: 1px solid rgba(216, 182, 106, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #d8b66a 0 4px, #171510 5px 13px, #b8934f 14px 15px, transparent 16px),
+    repeating-radial-gradient(circle, rgba(216, 182, 106, 0.22) 0 1px, rgba(7, 7, 6, 0.92) 2px 7px);
+  box-shadow:
+    0 0 0 5px rgba(8, 8, 6, 0.56),
+    0 10px 28px rgba(0, 0, 0, 0.36);
+  opacity: 0.8;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-motif::before {
+  inset: 17%;
+  border-color: rgba(239, 210, 141, 0.24);
+  border-style: solid;
+  transform: none;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-motif::after {
+  inset: 42%;
+  border-color: var(--cc-stage-gold);
+  background: var(--cc-stage-gold);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: -38px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card {
+  min-width: 0;
+  min-height: 146px;
+  padding: 17px 12px 13px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 48px minmax(0, 1fr) 18px;
+  justify-items: center;
+  gap: 8px;
+  overflow: hidden;
+  color: var(--cc-stage-ivory) !important;
+  text-align: center;
+  border: 1px solid rgba(216, 182, 106, 0.34) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(30, 28, 23, 0.97), rgba(14, 15, 13, 0.98)) !important;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.46),
+    inset 0 1px rgba(255, 255, 255, 0.045) !important;
+  backdrop-filter: none !important;
+  scrollbar-width: none;
+  transform: none;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card:hover {
+  color: #fff6e2 !important;
+  border-color: rgba(239, 210, 141, 0.72) !important;
+  background:
+    linear-gradient(180deg, rgba(47, 40, 27, 0.99), rgba(21, 19, 15, 0.99)) !important;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.5),
+    inset 0 1px rgba(255, 255, 255, 0.06) !important;
+  transform: translateY(-1px);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card:focus-visible {
+  outline: 2px solid var(--cc-stage-gold-bright);
+  outline-offset: 2px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-icon {
+  width: 46px;
+  height: 46px;
+  grid-row: 1;
+  color: var(--cc-stage-gold-bright);
+  border: 1px solid rgba(216, 182, 106, 0.42);
+  border-radius: 50%;
+  background: rgba(216, 182, 106, 0.08);
+  box-shadow:
+    0 0 0 5px rgba(216, 182, 106, 0.035),
+    0 0 20px rgba(216, 182, 106, 0.1);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.8;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-copy {
+  min-width: 0;
+  grid-row: 2;
+  align-self: center;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-label {
+  display: block;
+  color: var(--cc-stage-ivory);
+  font-family: Georgia, "Noto Serif SC", "Microsoft YaHei", serif;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 680;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-description {
+  display: -webkit-box;
+  margin-top: 5px;
+  overflow: hidden;
+  color: rgba(200, 185, 151, 0.8);
+  font-size: 9.5px;
+  line-height: 1.45;
+  font-weight: 500;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-index {
+  top: 8px;
+  right: 9px;
+  color: rgba(216, 182, 106, 0.66);
+  font-size: 9px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-arrow {
+  width: 18px;
+  height: 18px;
+  grid-row: 3;
+  align-self: end;
+  justify-self: center;
+  color: #151008;
+  border-radius: 50%;
+  background: var(--cc-stage-gold);
+  box-shadow: 0 4px 10px rgba(216, 182, 106, 0.16);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-companion {
+  right: 20px;
+  bottom: 146px;
+  width: 102px;
+  min-height: 124px;
+  padding: 7px 7px 10px;
+  color: #221c12;
+  border: 5px solid #efe3ca;
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, transparent 62%, rgba(239, 227, 202, 0.98) 63%),
+    var(--cc-showcase-hero, none) 75% 42% / 390% auto no-repeat,
+    #171510;
+  box-shadow: 0 15px 34px rgba(0, 0, 0, 0.5);
+  transform: rotate(2deg);
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-companion-mark {
+  display: none;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-companion-label {
+  padding: 4px 2px 0;
+  color: #3b2f1d;
+  border-radius: 0;
+  background: transparent;
+  font-family: Georgia, "Noto Serif SC", "Microsoft YaHei", serif;
+  font-size: 9px;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"][data-codex-compass-showcase="starlight-stage"]) .cc-theme-showcase-composer {
+  position: relative !important;
+  overflow: hidden !important;
+  color: var(--cc-stage-ivory) !important;
+  border-color: rgba(216, 182, 106, 0.52) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(28, 26, 21, 0.99), rgba(13, 14, 12, 0.99)) !important;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.48),
+    inset 0 1px rgba(255, 255, 255, 0.045) !important;
+  backdrop-filter: none !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"][data-codex-compass-showcase="starlight-stage"]) .cc-theme-showcase-composer :where(textarea, input, [contenteditable="true"]) {
+  color: var(--cc-stage-ivory) !important;
+  caret-color: var(--cc-stage-gold-bright) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"][data-codex-compass-showcase="starlight-stage"]) .cc-theme-showcase-composer :where(textarea, input)::placeholder {
+  color: rgba(200, 185, 151, 0.72) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"][data-codex-compass-showcase="starlight-stage"]) .cc-theme-showcase-composer button {
+  color: var(--cc-stage-ivory) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"][data-codex-compass-showcase="starlight-stage"]) .cc-theme-showcase-composer button:hover {
+  color: #fff6e2 !important;
+  background: rgba(216, 182, 106, 0.12) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) :where(
+  [role="menu"],
+  [role="listbox"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="command"],
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [role="dialog"]:not([aria-label="图片预览"]):not([aria-label="Image preview"]),
+  [role="alertdialog"]
+) {
+  color: var(--cc-stage-ivory) !important;
+  border-color: var(--cc-stage-border) !important;
+  background-color: var(--cc-stage-surface) !important;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.54) !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) :where(
+  [data-slot="dialog-content"],
+  [role="dialog"]:not([aria-label="图片预览"]):not([aria-label="Image preview"])
+) :where([data-slot="content"], [data-slot="sidebar"], input, textarea, [role="combobox"], [role="switch"]) {
+  color: var(--cc-stage-ivory) !important;
+  border-color: var(--cc-stage-border) !important;
+  background-color: var(--cc-stage-surface-raised) !important;
+  opacity: 1 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) :where(
+  [data-slot="dialog-overlay"],
+  [data-slot="alert-dialog-overlay"]
+) {
+  background-color: rgba(0, 0, 0, 0.68) !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) :where(
+  pre,
+  code,
+  .monaco-editor,
+  .monaco-editor .margin,
+  .monaco-editor-background,
+  [data-slot="code-block"],
+  [data-testid*="code-block"],
+  [data-testid*="diff"],
+  [data-testid*="terminal"]
+) {
+  color: #f3e9d4 !important;
+  border-color: #4f432c !important;
+  background-color: #0b0c0b !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) pre code {
+  background-color: transparent !important;
+}
+
+:where(html[data-codex-compass-theme="starlight-stage"]) [role="dialog"][aria-label="图片预览"],
+:where(html[data-codex-compass-theme="starlight-stage"]) [role="dialog"][aria-label="Image preview"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+@media (max-width: 920px) {
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase-host {
+    min-height: 620px !important;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage {
+    min-height: 620px;
+    grid-template-rows: minmax(300px, 1fr) auto;
+    padding: 56px 22px 22px;
+    background-position: 66% center;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-copy {
+    width: min(60%, 470px);
+    margin-top: 34px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-title {
+    font-size: 36px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: -12px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card {
+    min-height: 104px;
+    padding: 11px 10px !important;
+    grid-template-columns: 38px minmax(0, 1fr) 18px;
+    grid-template-rows: minmax(0, 1fr);
+    justify-items: start;
+    gap: 9px;
+    text-align: left;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-icon {
+    width: 36px;
+    height: 36px;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-copy {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-arrow {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    justify-self: end;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-motif,
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-companion {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase-host {
+    width: calc(100% - 24px) !important;
+    min-height: 680px !important;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage {
+    min-height: 680px;
+    grid-template-rows: minmax(314px, 1fr) auto;
+    padding: 62px 14px 16px;
+    background-position: 69% top;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage::before {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(8, 8, 6, 0.88) 0%,
+        rgba(8, 8, 6, 0.9) 51%,
+        rgba(8, 8, 6, 0.98) 72%,
+        rgba(8, 8, 6, 1) 100%
+      );
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage.layout-stage::after {
+    right: 8%;
+    bottom: 206px;
+    width: 84%;
+    opacity: 0.32;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-brandline {
+    left: 14px;
+    right: 14px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-status {
+    display: none;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-copy {
+    width: 100%;
+    margin-top: 48px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-eyebrow {
+    margin-bottom: 12px;
+    font-size: 11px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-title {
+    max-width: 100%;
+    font-size: 31px;
+    line-height: 1.18;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-subtitle {
+    max-width: 100%;
+    margin-top: 12px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-badge {
+    margin-top: 12px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card {
+    min-height: 96px;
+    padding: 10px 8px !important;
+    grid-template-columns: 32px minmax(0, 1fr) 16px;
+    gap: 7px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-label {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-description {
+    display: none;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card-index {
+    top: 5px;
+    right: 6px;
+    font-size: 8px;
+  }
+
+  :where(html[data-codex-compass-theme="starlight-stage"][data-codex-compass-showcase="starlight-stage"]) .cc-theme-showcase-composer {
+    border-radius: 8px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(html[data-codex-compass-theme="starlight-stage"]) .cc-theme-showcase.theme-starlight-stage .cc-theme-showcase-card {
+    transition-duration: 0.01ms !important;
+  }
+}
