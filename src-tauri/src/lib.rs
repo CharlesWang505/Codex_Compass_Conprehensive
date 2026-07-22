@@ -17,6 +17,7 @@ pub(crate) mod codex_commands;
 mod codex_floating;
 mod codex_install;
 mod codex_storage;
+mod model_health;
 mod proxy_latency;
 mod remote_control;
 
@@ -257,6 +258,12 @@ pub fn run() {
             }
             app.manage(hot_switch_runtime);
 
+            let model_health = model_health::ModelHealthManager::new(app.handle().clone());
+            if !watcher_hidden {
+                model_health.start();
+            }
+            app.manage(model_health);
+
             if watcher_hidden {
                 setup_hidden_watcher(app.handle().clone())?;
             }
@@ -324,6 +331,9 @@ pub fn run() {
             proxy_latency::managed_mihomo_status,
             proxy_latency::enable_managed_mihomo,
             proxy_latency::disable_managed_mihomo,
+            model_health::get_model_health_status,
+            model_health::run_model_health_check_now,
+            model_health::set_model_health_check_enabled,
             codex_plus_manager_lib::commands::backend_version,
             codex_plus_manager_lib::commands::startup_options,
             codex_plus_manager_lib::commands::load_overview,

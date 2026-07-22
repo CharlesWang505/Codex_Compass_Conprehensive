@@ -81,6 +81,7 @@ export type BackendSettings = {
   providerSyncManualProviders: string[]
   providerSyncLastSelectedProvider: string
   relayProfilesEnabled: boolean
+  modelHealthCheckEnabled: boolean
   enhancementsEnabled: boolean
   computerUseGuardEnabled: boolean
   codexAppPluginMarketplaceUnlock: boolean
@@ -203,6 +204,27 @@ export type ProviderDoctorResult = CommandResult<{
   recommendation: string
   checks: Array<{ id: string; title: string; status: string; detail: string }>
 }>
+
+export type ModelHealthResult = {
+  relayId: string
+  relayName: string
+  model: string
+  status: 'available' | 'unavailable' | 'skipped'
+  detail: string
+  checkedAt: number | null
+}
+
+export type ModelHealthSnapshot = {
+  enabled: boolean
+  checking: boolean
+  paused: boolean
+  lastCheckedAt: number | null
+  availableCount: number
+  unavailableCount: number
+  skippedCount: number
+  results: ModelHealthResult[]
+  error: string | null
+}
 
 export type LocalSession = {
   id: string

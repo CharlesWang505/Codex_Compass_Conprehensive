@@ -25,6 +25,12 @@ import { ToolsPluginsPage } from './context/ToolsPluginsPage'
 import type { ContextDraft } from './context/contextTypes'
 import { HotSwitchPage } from './hotSwitch/HotSwitchPage'
 import { AggregateRelayEditor } from './providers/AggregateRelayEditor'
+import { ModelHealthPanel } from './providers/ModelHealthPanel'
+import {
+  MODEL_HEALTH_COMMANDS,
+  MODEL_HEALTH_EVENTS,
+  modelHealthNoticeFromEvent,
+} from './providers/modelHealth'
 import {
   configuredModelNames,
   normalizeModelImageHandling,
@@ -54,6 +60,7 @@ import type {
   HotSwitchResult,
   InstallResult,
   LogsResult,
+  ModelHealthSnapshot,
   OverviewResult,
   PluginStatusResult,
   ProviderDoctorResult,
@@ -188,6 +195,7 @@ export function CodexWorkspace({ section }: Props) {
   const [ccsProviders, setCcsProviders] = useState<CommandResult<{ dbPath: string; providers: Array<{ sourceId: string; name: string; baseUrl: string }> }> | null>(null)
   const [pendingImport, setPendingImport] = useState<CommandResult<{ pending: { name: string; baseUrl: string } | null }> | null>(null)
   const [envConflicts, setEnvConflicts] = useState<EnvConflictsResult | null>(null)
+  const [modelHealth, setModelHealth] = useState<ModelHealthSnapshot | null>(null)
 
   const run = useCallback(async <T,>(key: string, operation: () => Promise<T>) => {
     activeOperations.current.push(key)
@@ -259,6 +267,12 @@ export function CodexWorkspace({ section }: Props) {
     }
     if (section === '设置') {
       void run('watcher-status', () => callCodex<WatcherResult>('load_watcher_state')).then((result) => result && setWatcher(result))
+    }
+    if (section === '供应商配置') {
+      void run('model-health-status', () => (
+        callCodex<ModelHealthSnapshot>(MODEL_HEALTH_COMMANDS.status)
+      ))
+        .then((result) => result && setModelHealth(result))
     }
   }, [acceptSettings, refreshOverview, run, section, tauri])
 
@@ -335,6 +349,60 @@ export function CodexWorkspace({ section }: Props) {
       unlisten?.()
     }
   }, [patchSettings, tauri])
+
+  useEffect(() => {
+    if (!tauri) return
+    let disposed = false
+    let cleanups: Array<() => void> = []
+    void Promise.all([
+      listen<ModelHealthSnapshot>(MODEL_HEALTH_EVENTS.updated, ({ payload }) => {
+        if (!disposed) setModelHealth(payload)
+      }),
+      listen<{ tone: string; text: string }>(MODEL_HEALTH_EVENTS.failed, ({ payload }) => {
+        if (!disposed) setNotice(modelHealthNoticeFromEvent('failed', payload))
+      }),
+      listen<{ tone: string; text: string }>(MODEL_HEALTH_EVENTS.recovered, ({ payload }) => {
+        if (!disposed) setNotice(modelHealthNoticeFromEvent('recovered', payload))
+      }),
+    ]).then((nextCleanups) => {
+      if (disposed) nextCleanups.forEach((cleanup) => cleanup())
+      else cleanups = nextCleanups
+    }).catch((error) => {
+      if (!disposed) {
+        setNotice({
+          tone: 'error',
+          text: error instanceof Error ? error.message : String(error),
+        })
+      }
+    })
+    return () => {
+      disposed = true
+      cleanups.forEach((cleanup) => cleanup())
+    }
+  }, [tauri])
+
+  const setModelHealthEnabled = useCallback(async (enabled: boolean) => {
+    if (!tauri) return
+    const result = await run('model-health-toggle', () => (
+      callCodex<ModelHealthSnapshot>(MODEL_HEALTH_COMMANDS.setEnabled, { enabled })
+    ))
+    if (!result) return
+    setModelHealth(result)
+    setNotice({
+      tone: 'ok',
+      text: enabled
+        ? '模型自动自检已开启，正在启动首次检测。'
+        : '模型自动自检已关闭。',
+    })
+  }, [run, tauri])
+
+  const runModelHealthNow = useCallback(async () => {
+    if (!tauri) return
+    const result = await run('model-health-run-now', () => (
+      callCodex<ModelHealthSnapshot>(MODEL_HEALTH_COMMANDS.runNow)
+    ))
+    if (result) setModelHealth(result)
+  }, [run, tauri])
 
   const setFloatingEnabled = useCallback(async (enabled: boolean) => {
     const result = await run('floating-enabled', () => callCodex<boolean>('floating_set_enabled', { enabled }))
@@ -878,6 +946,13 @@ export function CodexWorkspace({ section }: Props) {
             </div>
           </Panel>
           <div className="codex-provider-editor">
+            <ModelHealthPanel
+              snapshot={modelHealth}
+              runtimeAvailable={tauri}
+              busy={busy === 'model-health-toggle' || busy === 'model-health-run-now'}
+              onToggle={(enabled) => void setModelHealthEnabled(enabled)}
+              onRunNow={() => void runModelHealthNow()}
+            />
             {selectedProfile && settings ? (
               <>
                 {settings.hotSwitchEnabled ? <div className="codex-lock-banner"><ShieldCheck size={16} />8787 热切换运行中；可继续编辑，保存并重载后新请求使用新配置，正在执行的请求不受影响。</div> : null}

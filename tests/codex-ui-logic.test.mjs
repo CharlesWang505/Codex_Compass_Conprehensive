@@ -9,6 +9,15 @@ import {
   parseModelImageHandling,
   updateModelImageHandling,
 } from '../src/features/codex/providers/modelImageHandling.ts'
+import {
+  MODEL_HEALTH_COMMANDS,
+  MODEL_HEALTH_EVENTS,
+  modelHealthControlState,
+  modelHealthNoticeFromEvent,
+  modelHealthSummary,
+  modelHealthTimestamp,
+  modelHealthTone,
+} from '../src/features/codex/providers/modelHealth.ts'
 import { normalizeDurationValueMs } from '../src/lib/duration.ts'
 import { buildTimeWindow, DAY_MS } from '../src/lib/timeWindow.ts'
 import { summarizeWorkspacePermissions } from '../src/features/remote-control/workspacePermissions.ts'
@@ -193,5 +202,126 @@ test('model image handling stores only explicit policies for configured models',
   assert.equal(
     normalizeModelImageHandling('gpt-5', withStrip),
     JSON.stringify({ 'gpt-5': 'strip' }),
+  )
+})
+
+test('model health summary preserves disabled and paused states', () => {
+  assert.equal(modelHealthSummary({
+    enabled: false,
+    checking: false,
+    paused: true,
+    availableCount: 0,
+    unavailableCount: 0,
+    skippedCount: 0,
+  }), '已关闭')
+
+  assert.equal(modelHealthSummary({
+    enabled: true,
+    checking: false,
+    paused: true,
+    availableCount: 0,
+    unavailableCount: 0,
+    skippedCount: 0,
+  }), '已暂停')
+})
+
+test('model health summary prioritizes checking and reports result counts', () => {
+  assert.equal(modelHealthSummary({
+    enabled: true,
+    checking: true,
+    paused: false,
+    availableCount: 0,
+    unavailableCount: 0,
+    skippedCount: 0,
+  }), '检测中')
+
+  assert.equal(modelHealthSummary({
+    enabled: true,
+    checking: false,
+    paused: false,
+    availableCount: 2,
+    unavailableCount: 1,
+    skippedCount: 3,
+  }), '可用 2 · 不可用 1 · 跳过 3')
+})
+
+test('model health timestamp renders a stable local label', () => {
+  assert.equal(modelHealthTimestamp(null), '尚未检测')
+  assert.match(modelHealthTimestamp(Date.parse('2026-07-22T12:00:00Z')), /\d{2}:\d{2}/)
+})
+
+test('model health tone prioritizes failures and paused state', () => {
+  assert.equal(modelHealthTone(null), 'info')
+  assert.equal(modelHealthTone({
+    enabled: true,
+    checking: false,
+    paused: false,
+    availableCount: 2,
+    unavailableCount: 1,
+  }), 'error')
+  assert.equal(modelHealthTone({
+    enabled: true,
+    checking: false,
+    paused: true,
+    availableCount: 2,
+    unavailableCount: 0,
+  }), 'warning')
+  assert.equal(modelHealthTone({
+    enabled: true,
+    checking: false,
+    paused: false,
+    availableCount: 2,
+    unavailableCount: 0,
+  }), 'ok')
+  assert.equal(modelHealthTone({
+    enabled: true,
+    checking: false,
+    paused: true,
+    availableCount: 0,
+    unavailableCount: 1,
+  }), 'warning')
+})
+
+test('model health command and event contracts stay aligned with Tauri', () => {
+  assert.deepEqual(MODEL_HEALTH_COMMANDS, {
+    status: 'get_model_health_status',
+    setEnabled: 'set_model_health_check_enabled',
+    runNow: 'run_model_health_check_now',
+  })
+  assert.deepEqual(MODEL_HEALTH_EVENTS, {
+    updated: 'model-health-check:updated',
+    failed: 'model-health-check:failed',
+    recovered: 'model-health-check:recovered',
+  })
+})
+
+test('model health controls disable unavailable runtime and paused runs', () => {
+  const snapshot = {
+    enabled: true,
+    checking: false,
+    paused: false,
+  }
+  assert.deepEqual(modelHealthControlState(false, false, snapshot), {
+    toggleDisabled: true,
+    runDisabled: true,
+  })
+  assert.deepEqual(modelHealthControlState(true, false, { ...snapshot, paused: true }), {
+    toggleDisabled: false,
+    runDisabled: true,
+  })
+  assert.deepEqual(modelHealthControlState(true, false, snapshot), {
+    toggleDisabled: false,
+    runDisabled: false,
+  })
+})
+
+test('model health events map to existing floating notice tones', () => {
+  assert.deepEqual(
+    modelHealthNoticeFromEvent('failed', { text: '供应商不可用' }),
+    { tone: 'error', text: '供应商不可用' },
+  )
+  assert.deepEqual(
+    modelHealthNoticeFromEvent('recovered', { text: '供应商已恢复' }),
+    { tone: 'ok', text: '供应商已恢复' },
   )
 })

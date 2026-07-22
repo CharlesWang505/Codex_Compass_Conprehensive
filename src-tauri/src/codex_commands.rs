@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use crate::codex_install::{self as install, InstallActionResult, InstallOptions};
+use crate::model_health::{ModelHealthManager, probe_configuration_changed};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct CommandResult<T>
@@ -771,9 +772,18 @@ pub fn load_settings() -> CommandResult<SettingsPayload> {
 #[tauri::command]
 pub async fn save_settings(
     runtime: tauri::State<'_, HotSwitchRuntime>,
+    model_health: tauri::State<'_, ModelHealthManager>,
     settings: BackendSettings,
 ) -> Result<CommandResult<SettingsPayload>, String> {
-    Ok(save_settings_inner(&runtime, settings).await)
+    let _configuration_guard = model_health.lock_configuration_changes().await;
+    let store = SettingsStore::default();
+    let current = store.load().unwrap_or_default();
+    let result = save_settings_inner(&runtime, settings).await;
+    let saved = store.load().unwrap_or_else(|_| current.clone());
+    if probe_configuration_changed(&current, &saved) {
+        model_health.invalidate_probe_configuration_locked().await;
+    }
+    Ok(result)
 }
 
 async fn save_settings_inner(
