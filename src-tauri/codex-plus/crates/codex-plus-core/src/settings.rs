@@ -235,6 +235,79 @@ pub enum RelayMode {
     Aggregate,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum ModelSelectionMode {
+    #[default]
+    All,
+    Custom,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelChannelPreference {
+    pub source_ref: String,
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub selection_mode: ModelSelectionMode,
+    #[serde(default)]
+    pub selected_models: Vec<String>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_manual_rate",
+        serialize_with = "serialize_manual_rate"
+    )]
+    pub manual_rate: Option<f64>,
+    #[serde(default)]
+    pub manual_priority: i32,
+}
+
+impl PartialEq for ModelChannelPreference {
+    fn eq(&self, other: &Self) -> bool {
+        self.source_ref == other.source_ref
+            && self.enabled == other.enabled
+            && self.selection_mode == other.selection_mode
+            && self.selected_models == other.selected_models
+            && self.manual_rate.map(f64::to_bits) == other.manual_rate.map(f64::to_bits)
+            && self.manual_priority == other.manual_priority
+    }
+}
+
+impl Eq for ModelChannelPreference {}
+
+fn normalize_manual_rate(value: Option<f64>) -> Result<Option<f64>, &'static str> {
+    match value {
+        Some(value) if !value.is_finite() => Err("manualRate must be finite"),
+        Some(value) if value < 0.0 => Err("manualRate must be non-negative"),
+        Some(value) if value == 0.0 => Ok(Some(0.0)),
+        value => Ok(value),
+    }
+}
+
+fn deserialize_manual_rate<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = Option::<f64>::deserialize(deserializer)?;
+    normalize_manual_rate(value).map_err(serde::de::Error::custom)
+}
+
+fn serialize_manual_rate<S>(value: &Option<f64>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let value = normalize_manual_rate(*value).map_err(serde::ser::Error::custom)?;
+    serde::Serialize::serialize(&value, serializer)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelRouteLock {
+    pub canonical_model: String,
+    pub source_ref: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct BackendSettings {
     #[serde(rename = "codexAppPath", default)]
@@ -385,6 +458,16 @@ pub struct BackendSettings {
     pub relay_test_model: String,
     #[serde(rename = "modelHealthCheckEnabled", default)]
     pub model_health_check_enabled: bool,
+    #[serde(rename = "modelCostRoutingEnabled", default)]
+    pub model_cost_routing_enabled: bool,
+    #[serde(rename = "modelAutoFailoverEnabled", default)]
+    pub model_auto_failover_enabled: bool,
+    #[serde(rename = "modelTimeoutFailoverEnabled", default)]
+    pub model_timeout_failover_enabled: bool,
+    #[serde(rename = "modelChannelPreferences", default)]
+    pub model_channel_preferences: Vec<ModelChannelPreference>,
+    #[serde(rename = "modelRouteLocks", default)]
+    pub model_route_locks: Vec<ModelRouteLock>,
     #[serde(rename = "floatingSwitchEnabled", default)]
     pub floating_switch_enabled: bool,
     #[serde(rename = "floatingSwitchPosition", default)]
@@ -454,6 +537,11 @@ impl Default for BackendSettings {
             active_aggregate_relay_id: String::new(),
             relay_test_model: default_relay_test_model(),
             model_health_check_enabled: false,
+            model_cost_routing_enabled: false,
+            model_auto_failover_enabled: false,
+            model_timeout_failover_enabled: false,
+            model_channel_preferences: Vec::new(),
+            model_route_locks: Vec::new(),
             floating_switch_enabled: false,
             floating_switch_position: None,
             default_reasoning: default_reasoning(),
@@ -1228,6 +1316,30 @@ fn merge_known_setting_fields(target: &mut Map<String, Value>, source: &Map<Stri
         );
     }
     merge_bool_setting(target, source, "modelHealthCheckEnabled");
+    merge_bool_setting(target, source, "modelCostRoutingEnabled");
+    merge_bool_setting(target, source, "modelAutoFailoverEnabled");
+    merge_bool_setting(target, source, "modelTimeoutFailoverEnabled");
+    if let Some(value) = source
+        .get("modelChannelPreferences")
+        .and_then(Value::as_array)
+    {
+        if let Ok(preferences) =
+            serde_json::from_value::<Vec<ModelChannelPreference>>(Value::Array(value.clone()))
+        {
+            if let Ok(value) = serde_json::to_value(preferences) {
+                target.insert("modelChannelPreferences".to_string(), value);
+            }
+        }
+    }
+    if let Some(value) = source.get("modelRouteLocks").and_then(Value::as_array) {
+        if let Ok(locks) =
+            serde_json::from_value::<Vec<ModelRouteLock>>(Value::Array(value.clone()))
+        {
+            if let Ok(value) = serde_json::to_value(locks) {
+                target.insert("modelRouteLocks".to_string(), value);
+            }
+        }
+    }
 }
 
 fn merge_bool_setting(target: &mut Map<String, Value>, source: &Map<String, Value>, key: &str) {

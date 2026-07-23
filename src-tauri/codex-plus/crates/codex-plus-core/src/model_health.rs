@@ -1,8 +1,10 @@
+use std::collections::HashSet;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::model_suffix::parse_model_suffix;
 use crate::relay_config::{relay_profile_api_key, relay_profile_base_url, relay_profile_model};
 use crate::settings::{RelayMode, RelayProfile};
 
@@ -42,11 +44,6 @@ pub fn resolve_probe_target(
     profile: &RelayProfile,
     global_test_model: &str,
 ) -> ModelHealthProbeTarget {
-    let relay_name = if profile.name.trim().is_empty() {
-        "未命名供应商".to_string()
-    } else {
-        profile.name.trim().to_string()
-    };
     let model = if !profile.test_model.trim().is_empty() {
         profile.test_model.trim().to_string()
     } else {
@@ -57,6 +54,54 @@ pub fn resolve_probe_target(
             profile_model.trim().to_string()
         }
     };
+    resolve_probe_target_for_model(profile, &model)
+}
+
+pub fn resolve_probe_targets(
+    profile: &RelayProfile,
+    global_test_model: &str,
+) -> Vec<ModelHealthProbeTarget> {
+    configured_probe_models(profile, global_test_model)
+        .into_iter()
+        .map(|model| resolve_probe_target_for_model(profile, &model))
+        .collect()
+}
+
+fn configured_probe_models(profile: &RelayProfile, global_test_model: &str) -> Vec<String> {
+    let mut seen = HashSet::new();
+    let mut models = Vec::new();
+
+    profile
+        .model_list
+        .split(['\r', '\n', ','])
+        .for_each(|raw| push_probe_model(&mut models, &mut seen, raw));
+    push_probe_model(&mut models, &mut seen, &relay_profile_model(profile));
+    push_probe_model(&mut models, &mut seen, &profile.test_model);
+
+    if models.is_empty() {
+        push_probe_model(&mut models, &mut seen, global_test_model);
+    }
+    if models.is_empty() {
+        models.push(String::new());
+    }
+    models
+}
+
+fn push_probe_model(models: &mut Vec<String>, seen: &mut HashSet<String>, raw: &str) {
+    let (model, _) = parse_model_suffix(raw);
+    let model = model.trim();
+    if !model.is_empty() && seen.insert(model.to_string()) {
+        models.push(model.to_string());
+    }
+}
+
+fn resolve_probe_target_for_model(profile: &RelayProfile, model: &str) -> ModelHealthProbeTarget {
+    let relay_name = if profile.name.trim().is_empty() {
+        "未命名供应商".to_string()
+    } else {
+        profile.name.trim().to_string()
+    };
+    let model = model.trim().to_string();
     let skipped = |detail: &str| ModelHealthProbeTarget {
         relay_id: profile.id.clone(),
         relay_name: relay_name.clone(),

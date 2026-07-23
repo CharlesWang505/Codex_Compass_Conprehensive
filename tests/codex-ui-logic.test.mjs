@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { validateMappings } from '../src/features/codex/hotSwitch/mappingValidation.ts'
 import { setContextEnabled } from '../src/features/codex/context/contextTypes.ts'
@@ -27,6 +28,10 @@ const profiles = [
   { id: 'relay-b', name: 'B', relayMode: 'pureApi' },
   { id: 'aggregate', name: 'Aggregate', relayMode: 'aggregate' },
 ]
+const codexTypesSource = readFileSync(
+  new URL('../src/features/codex/types.ts', import.meta.url),
+  'utf8',
+)
 
 test('valid model mapping accepts a real primary provider and unique fallbacks', () => {
   const result = validateMappings([{
@@ -324,4 +329,20 @@ test('model health events map to existing floating notice tones', () => {
     modelHealthNoticeFromEvent('recovered', { text: '供应商已恢复' }),
     { tone: 'ok', text: '供应商已恢复' },
   )
+})
+
+test('TypeScript mirrors the backend model routing settings contract without runtime defaults', () => {
+  assert.match(codexTypesSource, /export type ModelSelectionMode = 'all' \| 'custom'/)
+  assert.match(codexTypesSource, /export type ModelChannelPreference = \{[\s\S]*manualRate: number \| null[\s\S]*\}/)
+  assert.match(codexTypesSource, /export type ModelRouteLock = \{[\s\S]*canonicalModel: string[\s\S]*sourceRef: string[\s\S]*\}/)
+  for (const field of [
+    'modelCostRoutingEnabled: boolean',
+    'modelAutoFailoverEnabled: boolean',
+    'modelTimeoutFailoverEnabled: boolean',
+    'modelChannelPreferences: ModelChannelPreference[]',
+    'modelRouteLocks: ModelRouteLock[]',
+  ]) {
+    assert.ok(codexTypesSource.includes(field), `missing ${field}`)
+  }
+  assert.doesNotMatch(codexTypesSource, /withModelRoutingDefaults|defaultModelRoutingSettings/)
 })

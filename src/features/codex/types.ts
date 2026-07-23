@@ -73,6 +73,22 @@ export type HotSwitchModelMapping = {
   reasoningOverride?: string
 }
 
+export type ModelSelectionMode = 'all' | 'custom'
+
+export type ModelChannelPreference = {
+  sourceRef: string
+  enabled: boolean
+  selectionMode: ModelSelectionMode
+  selectedModels: string[]
+  manualRate: number | null
+  manualPriority: number
+}
+
+export type ModelRouteLock = {
+  canonicalModel: string
+  sourceRef: string
+}
+
 export type BackendSettings = {
   codexAppPath: string
   codexExtraArgs: string[]
@@ -132,6 +148,11 @@ export type BackendSettings = {
   hotSwitchAutoModelEnabled: boolean
   hotSwitchModelMappings: HotSwitchModelMapping[]
   relayTestModel: string
+  modelCostRoutingEnabled: boolean
+  modelAutoFailoverEnabled: boolean
+  modelTimeoutFailoverEnabled: boolean
+  modelChannelPreferences: ModelChannelPreference[]
+  modelRouteLocks: ModelRouteLock[]
   floatingSwitchEnabled?: boolean
   floatingSwitchPosition?: { x: number; y: number } | null
   defaultReasoning?: string
